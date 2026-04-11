@@ -23,6 +23,12 @@ function createMockElement() {
 }
 
 global.document = {
+  head: {
+    appendChild() {}
+  },
+  createElement() {
+    return createMockElement();
+  },
   getElementById() {
     return createMockElement();
   },
@@ -32,7 +38,16 @@ global.document = {
 };
 
 global.window = {
-  scrollTo() {}
+  location: {
+    href: 'http://127.0.0.1:4173/'
+  },
+  history: {
+    replaceState() {}
+  },
+  scrollTo() {},
+  setTimeout(callback) {
+    callback();
+  }
 };
 
 const tarot = require('../script.js');
@@ -89,4 +104,23 @@ test('getCardImagePath maps canonical card number to img directory asset', () =>
   assert.equal(tarot.getCardImagePath(0), 'img/00-TheFool.png');
   assert.equal(tarot.getCardImagePath(8), 'img/08-Strength.png');
   assert.equal(tarot.getCardImagePath(21), 'img/21-TheWorld.png');
+});
+
+test('formatBirthdateValue keeps share-friendly YYYY.MM.DD shape', () => {
+  assert.equal(
+    tarot.formatBirthdateValue({
+      year: 1997,
+      month: 10,
+      day: 17
+    }),
+    '1997.10.17'
+  );
+});
+
+test('getBirthdateFromUrl reads shared birthdate query parameter', () => {
+  global.window.location.href = 'http://127.0.0.1:4173/?birthdate=2004.02.29';
+
+  assert.equal(tarot.getBirthdateFromUrl(), '2004.02.29');
+
+  global.window.location.href = 'http://127.0.0.1:4173/';
 });

@@ -27,9 +27,24 @@
 
                 <div class="input-card card-frame">
                     <div class="input-group">
-                        <label for="birthdate">생년월일</label>
-                        <input type="text" id="birthdate" inputmode="numeric" placeholder="YYYY.MM.DD" maxlength="10"
-                            autocomplete="bday">
+                        <span class="input-label">생년월일</span>
+                        <div class="birthdate-fields">
+                            <div class="birthdate-field">
+                                <label for="birth-year">연</label>
+                                <input type="text" id="birth-year" inputmode="numeric" placeholder="1997" maxlength="4"
+                                    autocomplete="bday-year">
+                            </div>
+                            <div class="birthdate-field">
+                                <label for="birth-month">월</label>
+                                <input type="text" id="birth-month" inputmode="numeric" placeholder="2" maxlength="2"
+                                    autocomplete="bday-month">
+                            </div>
+                            <div class="birthdate-field">
+                                <label for="birth-day">일</label>
+                                <input type="text" id="birth-day" inputmode="numeric" placeholder="1" maxlength="2"
+                                    autocomplete="bday-day">
+                            </div>
+                        </div>
                     </div>
                     <p id="input-error" class="input-error" aria-live="polite"></p>
                     <button id="cta-start" class="btn-primary">내 타로 보기</button>
@@ -203,7 +218,12 @@
         </section>
     </main>
 
+    <script src="config.js"></script>
+    <script src="config.local.js"></script>
     <script src="data/card-content.js"></script>
+    <script src="data/share-metadata.js"></script>
+    <script src="share-utils.js"></script>
+    <script src="share-service.js"></script>
     <script src="script.js"></script>
 </body>
 

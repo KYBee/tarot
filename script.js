@@ -12,6 +12,33 @@ const contentSource = (() => {
 
 const TAROT_CARD_CONTENT = contentSource.TAROT_CARD_CONTENT || {};
 const APP_COPY = contentSource.APP_COPY || {};
+
+const shareServiceSource = (() => {
+  if (typeof globalThis !== 'undefined' && globalThis.SHARE_SERVICE) {
+    return globalThis;
+  }
+
+  try {
+    return require('./share-service.js');
+  } catch (error) {
+    return {};
+  }
+})();
+const SHARE_SERVICE = shareServiceSource.SHARE_SERVICE || shareServiceSource;
+const shareUtilsSource = (() => {
+  if (typeof globalThis !== 'undefined' && globalThis.SHARE_UTILS) {
+    return globalThis;
+  }
+
+  try {
+    return require('./share-utils.js');
+  } catch (error) {
+    return {};
+  }
+})();
+const SHARE_UTILS = shareUtilsSource.SHARE_UTILS || shareUtilsSource;
+const APP_CONFIG =
+  (typeof globalThis !== 'undefined' && globalThis.APP_CONFIG) || {};
 const CARD_IMAGE_FILES = {
   0: 'img/00-TheFool.png',
   1: 'img/01-TheMagician.png',
@@ -38,6 +65,7 @@ const CARD_IMAGE_FILES = {
 };
 
 let currentProfile = null;
+let kakaoSdkPromise = null;
 
 function sumDigits(number) {
   return String(Math.abs(number))
@@ -75,6 +103,88 @@ function parseBirthDate(input, now = new Date()) {
   }
 
   return { year, month, day };
+}
+
+function normalizeBirthInputValue(value, maxLength) {
+  return String(value || '')
+    .replace(/\D/g, '')
+    .slice(0, maxLength);
+}
+
+function getBirthInputs() {
+  if (typeof document === 'undefined') {
+    return {};
+  }
+
+  return {
+    year: document.getElementById('birth-year'),
+    month: document.getElementById('birth-month'),
+    day: document.getElementById('birth-day')
+  };
+}
+
+function getBirthdateInputValue() {
+  const inputs = getBirthInputs();
+  const year = inputs.year?.value?.trim() || '';
+  const month = inputs.month?.value?.trim() || '';
+  const day = inputs.day?.value?.trim() || '';
+
+  if (!year && !month && !day) {
+    return '';
+  }
+
+  return `${year}.${month}.${day}`;
+}
+
+function validateBirthdateInputs() {
+  const inputs = getBirthInputs();
+  const year = inputs.year?.value?.trim() || '';
+  const month = inputs.month?.value?.trim() || '';
+  const day = inputs.day?.value?.trim() || '';
+
+  if (year.length !== 4) {
+    throw new Error('연도는 4자리로 입력해주세요.');
+  }
+
+  if (month.length < 1 || month.length > 2) {
+    throw new Error('월은 1자리 또는 2자리로 입력해주세요.');
+  }
+
+  if (day.length < 1 || day.length > 2) {
+    throw new Error('일은 1자리 또는 2자리로 입력해주세요.');
+  }
+}
+
+function setBirthdateInputs(parsedDate) {
+  const inputs = getBirthInputs();
+
+  if (inputs.year) {
+    inputs.year.value = String(parsedDate.year).padStart(4, '0');
+  }
+
+  if (inputs.month) {
+    inputs.month.value = String(parsedDate.month).padStart(2, '0');
+  }
+
+  if (inputs.day) {
+    inputs.day.value = String(parsedDate.day).padStart(2, '0');
+  }
+}
+
+function clearBirthdateInputs() {
+  const inputs = getBirthInputs();
+
+  if (inputs.year) {
+    inputs.year.value = '';
+  }
+
+  if (inputs.month) {
+    inputs.month.value = '';
+  }
+
+  if (inputs.day) {
+    inputs.day.value = '';
+  }
 }
 
 function reduceToBirthCard(year, month, day) {
@@ -170,6 +280,99 @@ function getCardImagePath(cardNumber) {
   return CARD_IMAGE_FILES[normalizeCardNumber(cardNumber)] || '';
 }
 
+function getAppConfig() {
+  return APP_CONFIG || {};
+}
+
+function getShareBaseUrl() {
+  const configuredBaseUrl = String(getAppConfig().shareBaseUrl || '').trim();
+
+  if (configuredBaseUrl) {
+    try {
+      const parsed = new URL(configuredBaseUrl);
+      return parsed.toString();
+    } catch (error) {
+      return configuredBaseUrl.endsWith('/') ? configuredBaseUrl : `${configuredBaseUrl}/`;
+    }
+  }
+
+  if (typeof window !== 'undefined' && window.location?.href) {
+    const currentUrl = new URL(window.location.href);
+    currentUrl.search = '';
+    currentUrl.hash = '';
+    return currentUrl.toString();
+  }
+
+  return '';
+}
+
+function getShareLink() {
+  if (!currentProfile?.birthDate) {
+    return getShareBaseUrl();
+  }
+
+  return SHARE_SERVICE.buildShareResultUrl({
+    baseUrl: getShareBaseUrl(),
+    cardId: currentProfile.birthCard.canonicalNumber,
+    birthDate: currentProfile.birthDate
+  });
+}
+
+function hasKakaoShareConfig() {
+  return Boolean(String(getAppConfig().kakaoJavaScriptKey || '').trim());
+}
+
+function loadKakaoSdk() {
+  if (typeof document === 'undefined') {
+    return Promise.resolve(null);
+  }
+
+  if (typeof window !== 'undefined' && window.Kakao) {
+    return Promise.resolve(window.Kakao);
+  }
+
+  if (kakaoSdkPromise) {
+    return kakaoSdkPromise;
+  }
+
+  kakaoSdkPromise = new Promise((resolve, reject) => {
+    const existingScript = document.getElementById('kakao-js-sdk');
+
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.Kakao), { once: true });
+      existingScript.addEventListener('error', () => reject(new Error('Kakao SDK load failed')), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = 'kakao-js-sdk';
+    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.6/kakao.min.js';
+    script.async = true;
+    script.onload = () => resolve(window.Kakao);
+    script.onerror = () => reject(new Error('Kakao SDK load failed'));
+    document.head.appendChild(script);
+  });
+
+  return kakaoSdkPromise;
+}
+
+async function ensureKakaoShareReady() {
+  if (!hasKakaoShareConfig()) {
+    return null;
+  }
+
+  const kakao = await loadKakaoSdk();
+  if (!kakao) {
+    return null;
+  }
+
+  if (!kakao.isInitialized()) {
+    kakao.init(getAppConfig().kakaoJavaScriptKey);
+  }
+
+  return kakao;
+}
+
 function formatDigitsExpression(value) {
   return String(value).split('').join(' + ');
 }
@@ -197,6 +400,62 @@ function formatBirthTrace(year, month, day, reductionResult) {
     `${year} + ${month} + ${day} = ${reductionResult.total}`,
     reductionResult.steps
   );
+}
+
+function formatBirthdateValue(parsedDate) {
+  const year = String(parsedDate.year).padStart(4, '0');
+  const month = String(parsedDate.month).padStart(2, '0');
+  const day = String(parsedDate.day).padStart(2, '0');
+
+  return `${year}.${month}.${day}`;
+}
+
+function getBirthdateFromUrl() {
+  if (typeof window === 'undefined' || !window.location) {
+    return '';
+  }
+
+  try {
+    const currentUrl = new URL(window.location.href);
+    return currentUrl.searchParams.get('birthdate') || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function getCardSlugFromUrl() {
+  if (typeof window === 'undefined' || !window.location) {
+    return '';
+  }
+
+  try {
+    const currentUrl = new URL(window.location.href);
+    return currentUrl.searchParams.get('card') || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function replaceHistoryUrl(url) {
+  if (typeof window === 'undefined' || !window.history?.replaceState) {
+    return;
+  }
+
+  window.history.replaceState({}, '', url);
+}
+
+function syncUrlWithProfile(profile) {
+  if (!profile?.birthDate) {
+    return;
+  }
+
+  const currentUrl = new URL(getShareBaseUrl() || 'http://localhost/');
+  currentUrl.searchParams.set('birthdate', formatBirthdateValue(profile.birthDate));
+  replaceHistoryUrl(currentUrl.toString());
+}
+
+function clearShareUrl() {
+  replaceHistoryUrl(getShareBaseUrl());
 }
 
 function formatYearTrace(month, day, yearResult) {
@@ -403,23 +662,66 @@ function renderYearFlowSection(profile) {
   });
 }
 
+function renderProfile(profile) {
+  currentProfile = profile;
+  renderBirthCardSection(currentProfile);
+  renderPersonaCardSection(currentProfile);
+  renderWingCardSection(currentProfile);
+  renderYearFlowSection(currentProfile);
+
+  const swiper = document.getElementById('card-swiper');
+  if (swiper) {
+    swiper.scrollLeft = 0;
+  }
+
+  updateDots(0);
+  setShareFeedback('');
+  showScreen('result');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startProfileFlow(parsedDate, options = {}) {
+  const delay = options.skipLoading ? 0 : 350;
+
+  showScreen(options.skipLoading ? 'result' : 'loading');
+
+  window.setTimeout(() => {
+    const profile = buildTarotProfile(parsedDate);
+    renderProfile(profile);
+    syncUrlWithProfile(profile);
+  }, delay);
+}
+
 function getShareText() {
   if (!currentProfile) {
     return '';
   }
 
-  const birth = currentProfile.birthCard;
-  const currentYearFlow = currentProfile.years[1];
+  return SHARE_SERVICE.buildFallbackShareText({
+    baseUrl: getShareBaseUrl(),
+    cardId: currentProfile.birthCard.canonicalNumber,
+    birthDate: currentProfile.birthDate
+  });
+}
 
-  return [
-    '너의 타로는? | 나의 타로 프로필',
-    '',
-    `탄생카드: ${birth.displayNumber} ${birth.name}`,
-    `기본 의미: ${birth.keywords.join(', ')}`,
-    `올해 흐름: ${currentYearFlow.cardContent.displayNumber} ${currentYearFlow.cardContent.name}`,
-    '',
-    '나의 타로 프로필을 확인해보세요.'
-  ].join('\n');
+function getShareDescription() {
+  if (!currentProfile) {
+    return '';
+  }
+
+  return SHARE_SERVICE.getShareMetadata(currentProfile.birthCard.canonicalNumber).description;
+}
+
+function getKakaoSharePayload() {
+  if (!currentProfile) {
+    return null;
+  }
+
+  return SHARE_SERVICE.buildKakaoSharePayload({
+    baseUrl: getShareBaseUrl(),
+    cardId: currentProfile.birthCard.canonicalNumber,
+    birthDate: currentProfile.birthDate
+  });
 }
 
 async function copyShareText(text) {
@@ -442,18 +744,37 @@ async function handleShare() {
   }
 
   const shareText = getShareText();
+  const kakaoPayload = getKakaoSharePayload();
 
-  // TODO: Kakao JavaScript SDK 앱키와 도메인 설정이 준비되면 문서 기준으로 sendDefault 연동.
-  if (typeof window !== 'undefined' && window.Kakao?.Share?.sendDefault) {
-    setShareFeedback('카카오 공유 설정이 연결되면 이 버튼에서 바로 공유됩니다.');
-    return;
+  try {
+    if (!SHARE_UTILS.hasPublicShareBaseUrl(getShareBaseUrl())) {
+      console.warn('[share] non-public shareBaseUrl detected; attempting Kakao Share anyway for local testing', {
+        shareBaseUrl: getShareBaseUrl()
+      });
+    }
+
+    const kakao = await ensureKakaoShareReady();
+    if (kakao?.Share?.sendDefault && kakaoPayload) {
+      console.log('[share] Kakao payload debug', {
+        resultUrl: kakaoPayload.content.link.webUrl,
+        imageUrl: kakaoPayload.content.imageUrl,
+        metadata: SHARE_SERVICE.getShareMetadata(currentProfile.birthCard.canonicalNumber)
+      });
+      kakao.Share.sendDefault(kakaoPayload);
+      setShareFeedback('카카오톡 공유창을 열었어요.');
+      return;
+    }
+  } catch (error) {
+    // Kakao SDK 실패 시에도 Web Share / 클립보드 fallback을 유지한다.
   }
 
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
+      const shareMetadata = SHARE_SERVICE.getShareMetadata(currentProfile.birthCard.canonicalNumber);
       await navigator.share({
-        title: '너의 타로는? | 나의 타로 프로필',
-        text: shareText
+        title: shareMetadata.title,
+        text: shareText,
+        url: getShareLink()
       });
       setShareFeedback('공유 시트를 열었어요.');
       return;
@@ -476,19 +797,17 @@ async function handleShare() {
 function resetView() {
   currentProfile = null;
 
-  const birthdateInput = document.getElementById('birthdate');
   const errorBox = document.getElementById('input-error');
   const swiper = document.getElementById('card-swiper');
 
-  if (birthdateInput) {
-    birthdateInput.value = '';
-  }
+  clearBirthdateInputs();
 
   if (errorBox) {
     errorBox.textContent = '';
   }
 
   setShareFeedback('');
+  clearShareUrl();
   showScreen('landing');
 
   if (swiper) {
@@ -499,23 +818,21 @@ function resetView() {
 }
 
 function handleBirthDateInput(event) {
-  let value = event.target.value.replace(/\D/g, '').slice(0, 8);
+  const maxLength = Number(event.target.getAttribute('maxlength') || '4');
+  event.target.value = normalizeBirthInputValue(event.target.value, maxLength);
 
-  if (value.length > 4) {
-    value = `${value.slice(0, 4)}.${value.slice(4)}`;
+  const inputs = [getBirthInputs().year, getBirthInputs().month, getBirthInputs().day];
+  const currentIndex = inputs.indexOf(event.target);
+  const nextInput = inputs[currentIndex + 1];
+
+  if (event.target.value.length === maxLength && nextInput) {
+    nextInput.focus();
   }
-
-  if (value.length > 7) {
-    value = `${value.slice(0, 7)}.${value.slice(7)}`;
-  }
-
-  event.target.value = value;
 }
 
 function handleStart() {
-  const birthdateInput = document.getElementById('birthdate');
   const errorBox = document.getElementById('input-error');
-  const inputValue = birthdateInput?.value || '';
+  const inputValue = getBirthdateInputValue();
 
   if (errorBox) {
     errorBox.textContent = '';
@@ -523,6 +840,7 @@ function handleStart() {
 
   let parsedDate;
   try {
+    validateBirthdateInputs();
     parsedDate = parseBirthDate(inputValue);
   } catch (error) {
     if (errorBox) {
@@ -531,25 +849,7 @@ function handleStart() {
     return;
   }
 
-  showScreen('loading');
-
-  window.setTimeout(() => {
-    currentProfile = buildTarotProfile(parsedDate);
-    renderBirthCardSection(currentProfile);
-    renderPersonaCardSection(currentProfile);
-    renderWingCardSection(currentProfile);
-    renderYearFlowSection(currentProfile);
-
-    const swiper = document.getElementById('card-swiper');
-    if (swiper) {
-      swiper.scrollLeft = 0;
-    }
-
-    updateDots(0);
-    setShareFeedback('');
-    showScreen('result');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, 350);
+  startProfileFlow(parsedDate);
 }
 
 function bindSwiperDots() {
@@ -569,12 +869,14 @@ function bindEvents() {
   const startButton = document.getElementById('cta-start');
   const restartButton = document.getElementById('restart');
   const shareButton = document.getElementById('share-kakao');
-  const birthdateInput = document.getElementById('birthdate');
+  const birthInputs = getBirthInputs();
 
   startButton?.addEventListener('click', handleStart);
   restartButton?.addEventListener('click', resetView);
   shareButton?.addEventListener('click', handleShare);
-  birthdateInput?.addEventListener('input', handleBirthDateInput);
+  birthInputs.year?.addEventListener('input', handleBirthDateInput);
+  birthInputs.month?.addEventListener('input', handleBirthDateInput);
+  birthInputs.day?.addEventListener('input', handleBirthDateInput);
 
   bindSwiperDots();
 }
@@ -587,10 +889,35 @@ function initApp() {
   bindEvents();
   showScreen('landing');
   updateDots(0);
+
+  const sharedBirthdate = getBirthdateFromUrl();
+  const sharedCardSlug = getCardSlugFromUrl();
+  if (!sharedBirthdate) {
+    return;
+  }
+
+  try {
+    const parsedDate = parseBirthDate(sharedBirthdate);
+    setBirthdateInputs(parsedDate);
+    startProfileFlow(parsedDate, { skipLoading: true });
+    if (sharedCardSlug) {
+      const resolvedProfile = buildTarotProfile(parsedDate);
+      const resolvedCardSlug = SHARE_SERVICE.getCardSlug(resolvedProfile.birthCard.canonicalNumber);
+      if (resolvedCardSlug !== sharedCardSlug) {
+        console.warn('[share] shared card slug does not match restored profile card', {
+          sharedCardSlug,
+          resolvedCardSlug
+        });
+      }
+    }
+  } catch (error) {
+    clearShareUrl();
+  }
 }
 
 const exported = {
   parseBirthDate,
+  normalizeBirthInputValue,
   sumDigits,
   reduceToBirthCard,
   getPersonaCard,
@@ -600,8 +927,16 @@ const exported = {
   getCardContent,
   getCardImagePath,
   formatBirthTrace,
+  formatBirthdateValue,
+  getBirthdateInputValue,
+  validateBirthdateInputs,
   formatYearTrace,
   buildTarotProfile,
+  getBirthdateFromUrl,
+  getCardSlugFromUrl,
+  getShareLink,
+  getShareDescription,
+  getKakaoSharePayload,
   handleShare,
   resetView,
   renderBirthCardSection,
