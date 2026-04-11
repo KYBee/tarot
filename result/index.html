@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>너의 타로는? - 결과 이동 중</title>
+</head>
+
+<body>
+    <script>
+        (function redirectToRootResult() {
+            var currentUrl = new URL(window.location.href);
+            var targetUrl = new URL('../', currentUrl);
+
+            currentUrl.searchParams.forEach(function (value, key) {
+                targetUrl.searchParams.set(key, value);
+            });
+
+            window.location.replace(targetUrl.toString());
+        })();
+    </script>
+</body>
+
+</html>
