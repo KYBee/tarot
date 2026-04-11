@@ -1,0 +1,10 @@
+.DS_Store
+.omx/
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.*
+config.local.js
+
