@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>너의 타로는? - 나의 타로 프로필</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-overlay"></div>
+
+    <main id="app">
+        <!-- Landing Page -->
+        <section id="landing" class="screen active">
+            <div class="container">
+                <header>
+                    <h1 class="glow-text">너의 타로는?</h1>
+                    <p class="subtitle">생년월일로 보는 나의 타로 프로필</p>
+                </header>
+
+                <div class="input-card card-frame">
+                    <div class="input-group">
+                        <label for="birthdate">생년월일</label>
+                        <input type="text" id="birthdate" inputmode="numeric" placeholder="YYYY.MM.DD" maxlength="10"
+                            autocomplete="bday">
+                    </div>
+                    <p id="input-error" class="input-error" aria-live="polite"></p>
+                    <button id="cta-start" class="btn-primary">내 타로 보기</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Screen -->
+        <section id="loading" class="screen">
+            <div class="container centered">
+                <div class="mystical-spinner">
+                    <div class="star s1"></div>
+                    <div class="star s2"></div>
+                    <div class="star s3"></div>
+                    <div class="card-outline"></div>
+                </div>
+                <p class="loading-text">카드를 해석하는 중...</p>
+            </div>
+        </section>
+
+        <!-- Result Page -->
+        <section id="result" class="screen">
+            <div class="container no-padding">
+                <!-- Swiper Container -->
+                <div class="card-swiper" id="card-swiper">
+                    <!-- Birth Card Item -->
+                    <div class="swiper-item" id="item-birth">
+                        <div class="item-content">
+                            <h3 class="item-title">나의 탄생카드</h3>
+                            <p class="type-definition" id="res-birth-type-def">탄생카드는 내가 타고난 중심 성향을 의미합니다.</p>
+                            <div class="card-visual card-frame gold-glow">
+                                <img class="card-art" id="res-birth-art" src="img/08-Strength.png" alt="힘 카드 이미지">
+                                <span class="card-number" id="res-birth-num">8</span>
+                                <span class="card-name" id="res-birth-name">힘</span>
+                            </div>
+                            <div class="card-info-box card-frame thin">
+                                <div class="info-block">
+                                    <h4 class="info-label">기본 의미</h4>
+                                    <p class="info-meaning" id="res-birth-meaning">인내, 용기, 내면의 힘</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block">
+                                    <h4 class="info-label">카드 설명</h4>
+                                    <p class="info-desc" id="res-birth-symbolism">사자를 부드럽게 다루는 장면이 핵심인 카드입니다.</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block">
+                                    <h4 class="info-label">이 카드를 가진 사람은</h4>
+                                    <p class="info-desc" id="res-birth-profile">겉보다 속이 훨씬 강하고 오래 버티는 힘이 있습니다.</p>
+                                </div>
+                                <p class="calc-trace" id="res-birth-trace">1997 + 10 + 17 = 2024 -> 2 + 0 + 2 + 4 = 8</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Persona Card Item -->
+                    <div class="swiper-item" id="item-persona">
+                        <div class="item-content">
+                            <h3 class="item-title">페르소나 카드</h3>
+                            <p class="type-definition" id="res-persona-type-def">페르소나 카드는 사회 속에서 드러나는 나의 얼굴을 의미합니다.</p>
+                            <div class="card-visual card-frame gold-glow">
+                                <img class="card-art" id="res-persona-art" src="img/11-Justice.png" alt="정의 카드 이미지">
+                                <span class="card-number" id="res-persona-num">11</span>
+                                <span class="card-name" id="res-persona-name">정의</span>
+                            </div>
+                            <div class="card-info-box card-frame thin">
+                                <div class="info-block">
+                                    <h4 class="info-label">기본 의미</h4>
+                                    <p class="info-meaning" id="res-persona-meaning">균형, 공정함, 판단</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block">
+                                    <h4 class="info-label">카드 설명</h4>
+                                    <p class="info-desc" id="res-persona-symbolism">칼과 저울을 든 인물이 두 기둥 사이에 앉아 있습니다.</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block">
+                                    <h4 class="info-label">이 카드를 가진 사람은</h4>
+                                    <p class="info-desc" id="res-persona-profile">사회 속에서 기준과 균형을 중요하게 여기는 모습으로 드러납니다.</p>
+                                </div>
+                                <p class="calc-trace" id="res-persona-trace">탄생카드 축약 과정에서 11이 나타나 페르소나 카드로 읽습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wing Card Item -->
+                    <div class="swiper-item" id="item-wing">
+                        <div class="item-content">
+                            <h3 class="item-title">날개 카드</h3>
+                            <p class="item-subtitle">내 카드처럼 살지 못할 때 나타나는 모습</p>
+                            <p class="type-definition" id="res-wing-type-def">날개 카드는 내가 내 카드답게 살지 못할 때 기울어지는 방향을 의미합니다.</p>
+                            <div class="card-visual card-frame gold-glow">
+                                <img class="card-art" id="res-wing-art" src="img/07-TheChariot.png" alt="전차 카드 이미지">
+                                <span class="card-number" id="res-wing-num">7</span>
+                                <span class="card-name" id="res-wing-name">전차</span>
+                            </div>
+                            <div class="card-info-box card-frame thin">
+                                <div class="info-block">
+                                    <h4 class="info-label">기본 의미</h4>
+                                    <p class="info-meaning" id="res-wing-meaning">승리, 전진, 통제</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block">
+                                    <h4 class="info-label">카드 설명</h4>
+                                    <p class="info-desc" id="res-wing-symbolism">서로 다른 힘을 한 방향으로 몰아가는 전차의 이미지가 핵심입니다.</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block">
+                                    <h4 class="info-label">이 카드를 가진 사람은</h4>
+                                    <p class="info-desc" id="res-wing-profile">중심을 놓치면 속도와 의지가 먼저 나오는 쪽으로 기울 수 있습니다.</p>
+                                </div>
+                                <p class="calc-trace" id="res-wing-trace">날개 카드 = 탄생카드 8 - 1 -> 7</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Swiper Navigation Indicator -->
+                <div class="swiper-dots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+
+                <p class="swipe-hint">← 옆으로 넘겨보세요 →</p>
+
+                <!-- Year Flow Section -->
+                <div class="year-flow-section">
+                    <h3 class="section-title">연도별 흐름</h3>
+                    <div class="year-cards-grid">
+                        <div class="year-card-item">
+                            <span class="year-tag" id="year-prev-label">2023</span>
+                            <div class="mini-card card-frame gold-glow">
+                                <img class="mini-card-art" id="year-prev-art" src="img/09-TheHermit.png" alt="작년 카드 이미지">
+                                <span class="mini-card-number" id="year-prev-number">9</span>
+                                <span class="mini-card-name" id="year-prev-name">전차</span>
+                            </div>
+                            <p class="year-card-desc" id="year-prev-desc">지난해의 에너지를 정리합니다.</p>
+                            <p class="year-card-trace" id="year-prev-trace">10 + 17 + 2025 = 2052 -> 2 + 0 + 5 + 2 = 9</p>
+                        </div>
+                        <div class="year-card-item current">
+                            <span class="year-tag" id="year-curr-label">2024</span>
+                            <div class="mini-card card-frame gold-glow primary">
+                                <img class="mini-card-art" id="year-curr-art" src="img/10-WheelOfFortune.png" alt="올해 카드 이미지">
+                                <span class="mini-card-number" id="year-curr-number">10</span>
+                                <span class="mini-card-name" id="year-curr-name">힘</span>
+                            </div>
+                            <p class="year-card-desc" id="year-curr-desc">올해 당신을 관통하는 핵심 키워드입니다.</p>
+                            <p class="year-card-trace" id="year-curr-trace">10 + 17 + 2026 = 2053 -> 2 + 0 + 5 + 3 = 10</p>
+                        </div>
+                        <div class="year-card-item">
+                            <span class="year-tag" id="year-next-label">2025</span>
+                            <div class="mini-card card-frame gold-glow">
+                                <img class="mini-card-art" id="year-next-art" src="img/11-Justice.png" alt="내년 카드 이미지">
+                                <span class="mini-card-number" id="year-next-number">11</span>
+                                <span class="mini-card-name" id="year-next-name">은둔자</span>
+                            </div>
+                            <p class="year-card-desc" id="year-next-desc">다음 해에 다가올 변화의 예고입니다.</p>
+                            <p class="year-card-trace" id="year-next-trace">10 + 17 + 2027 = 2054 -> 2 + 0 + 5 + 4 = 11</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom CTA -->
+                <div class="bottom-actions padding-x">
+                    <button id="share-kakao" class="btn-share">카카오톡으로 내 타로 공유하기</button>
+                    <p id="share-feedback" class="share-feedback" aria-live="polite"></p>
+                    <button id="restart" class="btn-secondary">다시 하기</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="data/card-content.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
