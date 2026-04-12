@@ -48,11 +48,31 @@
 
 정적 파일 서버로 바로 실행할 수 있습니다.
 
+먼저 `.env` 값을 브라우저용 설정 파일로 생성합니다.
+
+```bash
+node scripts/generate-config.js
+```
+
 ```bash
 python3 -m http.server 4175 --bind 127.0.0.1
 ```
 
 브라우저에서 `http://127.0.0.1:4175` 로 접속합니다.
+
+## 환경 변수
+
+정적 사이트라서 브라우저가 `.env`를 직접 읽을 수는 없습니다. 대신 `.env`를 `config.local.js`로 변환해 사용합니다.
+
+```bash
+cp .env.example .env
+node scripts/generate-config.js
+```
+
+지원 값:
+
+- `KAKAO_JAVASCRIPT_KEY`
+- `SHARE_BASE_URL`
 
 ## 검증 명령
 
@@ -90,4 +110,3 @@ node --check data/card-content.js
 - 디자인 방향은 기존 우주적 무드와 카드형 결과 흐름을 존중합니다.
 - 필요한 부분만 수정하고, 과장된 문서/과한 추상화는 피합니다.
 - 이 저장소의 상세 작업 규칙은 `AGENTS.md`를 우선합니다.
-

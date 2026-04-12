@@ -158,20 +158,51 @@ body {
     letter-spacing: 0.15em;
 }
 
-#birthdate {
+.input-label {
+    display: block;
+    color: var(--accent-gold);
+    font-size: 0.78rem;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.birthdate-fields {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr 1fr;
+    gap: 10px;
+}
+
+.birthdate-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.birthdate-field label {
+    margin-bottom: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+}
+
+#birth-year,
+#birth-month,
+#birth-day {
     width: 100%;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    padding: 16px;
+    padding: 16px 12px;
     color: var(--text-main);
     font-family: var(--font-fancy);
-    font-size: 1.18rem;
+    font-size: 1.08rem;
     text-align: center;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.08em;
 }
 
-#birthdate:focus {
+#birth-year:focus,
+#birth-month:focus,
+#birth-day:focus {
     outline: none;
     border-color: var(--accent-gold);
     box-shadow: 0 0 14px var(--accent-gold-glow);
