@@ -54,6 +54,26 @@ python3 -m http.server 4175 --bind 127.0.0.1
 
 브라우저에서 `http://127.0.0.1:4175` 로 접속합니다.
 
+## Vercel 설정
+
+Vercel 배포에서는 빌드 시 `config.js`를 자동 생성합니다.
+
+- Project Settings > Environment Variables 에 아래 값을 추가합니다.
+- `KAKAO_JS_KEY`
+- `SHARE_BASE_URL`
+
+현재 기본 공유 URL은 `https://tarot-zeta-two.vercel.app/` 이며, `SHARE_BASE_URL`을 비워두면 이 값을 사용합니다.
+배포 시 `config.js`가 생성되고, 앱은 이 값을 이용해 Kakao SDK를 초기화합니다.
+
+로컬에서 같은 구성을 테스트하려면:
+
+```bash
+KAKAO_JS_KEY=your_key SHARE_BASE_URL=https://tarot-zeta-two.vercel.app/ node scripts/generate-config.js
+python3 -m http.server 4175 --bind 127.0.0.1
+```
+
+실제 키 파일인 `config.js`는 git에 올리지 않고, 예시는 `config.example.js`를 참고합니다.
+
 ## 검증 명령
 
 ```bash
@@ -90,4 +110,3 @@ node --check data/card-content.js
 - 디자인 방향은 기존 우주적 무드와 카드형 결과 흐름을 존중합니다.
 - 필요한 부분만 수정하고, 과장된 문서/과한 추상화는 피합니다.
 - 이 저장소의 상세 작업 규칙은 `AGENTS.md`를 우선합니다.
-

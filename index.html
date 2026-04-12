@@ -27,9 +27,25 @@
 
                 <div class="input-card card-frame">
                     <div class="input-group">
-                        <label for="birthdate">생년월일</label>
-                        <input type="text" id="birthdate" inputmode="numeric" placeholder="YYYY.MM.DD" maxlength="10"
-                            autocomplete="bday">
+                        <label for="birth-year">생년월일</label>
+                        <div class="birthdate-fields" role="group" aria-labelledby="birthdate-group-label">
+                            <span id="birthdate-group-label" class="sr-only">생년월일 입력</span>
+                            <div class="birthdate-field">
+                                <input type="text" id="birth-year" inputmode="numeric" placeholder="1997" maxlength="4"
+                                    autocomplete="bday-year" aria-label="출생 연도">
+                                <span class="birthdate-suffix">년</span>
+                            </div>
+                            <div class="birthdate-field">
+                                <input type="text" id="birth-month" inputmode="numeric" placeholder="1" maxlength="2"
+                                    autocomplete="bday-month" aria-label="출생 월">
+                                <span class="birthdate-suffix">월</span>
+                            </div>
+                            <div class="birthdate-field">
+                                <input type="text" id="birth-day" inputmode="numeric" placeholder="1" maxlength="2"
+                                    autocomplete="bday-day" aria-label="출생 일">
+                                <span class="birthdate-suffix">일</span>
+                            </div>
+                        </div>
                     </div>
                     <p id="input-error" class="input-error" aria-live="polite"></p>
                     <button id="cta-start" class="btn-primary">내 타로 보기</button>
@@ -203,6 +219,11 @@
         </section>
     </main>
 
+    <script>
+        window.APP_CONFIG = window.APP_CONFIG || {};
+    </script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.0/kakao.min.js"></script>
+    <script src="config.js"></script>
     <script src="data/card-content.js"></script>
     <script src="script.js"></script>
 </body>

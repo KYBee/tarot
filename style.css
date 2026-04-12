@@ -158,23 +158,76 @@ body {
     letter-spacing: 0.15em;
 }
 
-#birthdate {
-    width: 100%;
+.birthdate-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.birthdate-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    padding: 16px;
-    color: var(--text-main);
-    font-family: var(--font-fancy);
-    font-size: 1.18rem;
-    text-align: center;
-    letter-spacing: 0.18em;
+    padding: 0 14px;
 }
 
-#birthdate:focus {
-    outline: none;
+.birthdate-field:focus-within {
     border-color: var(--accent-gold);
     box-shadow: 0 0 14px var(--accent-gold-glow);
+}
+
+.birthdate-field input {
+    width: 100%;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 16px 0;
+    color: var(--text-main);
+    font-family: var(--font-fancy);
+    font-size: 1.05rem;
+    text-align: center;
+    letter-spacing: 0.08em;
+}
+
+.birthdate-field input::placeholder {
+    color: rgba(248, 244, 255, 0.4);
+}
+
+.birthdate-field input:focus {
+    outline: none;
+}
+
+.birthdate-suffix {
+    flex-shrink: 0;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+#birth-year,
+#birth-month,
+#birth-day {
+    width: 100%;
+}
+
+@media (max-width: 380px) {
+    .birthdate-fields {
+        grid-template-columns: 1fr;
+    }
 }
 
 .input-error {
