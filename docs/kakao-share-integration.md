@@ -36,6 +36,11 @@
 - `config.example.js`
 - `config.js` 또는 `config.local.js` gitignore 처리
 
+Vercel 배포에서는 환경변수에서 `config.js`를 생성하는 방식을 권장한다.
+
+- `KAKAO_JS_KEY`
+- `SHARE_BASE_URL`
+
 예시:
 
 ```js
@@ -59,6 +64,7 @@ window.APP_CONFIG = {
 - `Kakao.init(APP_CONFIG.kakaoJavaScriptKey)`
 - `Kakao.isInitialized()` 체크
 - 결과 데이터 기반 공유 payload 구성
+- 정적 배포 환경에서는 Vercel env로 `config.js`를 생성해 위 값을 주입
 
 ## 6. 버튼 UI 요구사항
 
@@ -107,4 +113,3 @@ window.APP_CONFIG = {
 - JavaScript 키는 완전한 비밀키가 아니지만, 저장소에 무분별하게 하드코딩하지 않는 편이 좋다.
 - 실제 배포 도메인과 Kakao 등록 도메인이 정확히 일치해야 한다.
 - 추후 결과 URL 기능이 들어가면 공유 효율이 크게 좋아진다.
-
