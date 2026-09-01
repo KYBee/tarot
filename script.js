@@ -192,26 +192,17 @@ function formatProfileCardLabel(cardContent) {
 }
 
 function buildProfileRelationship(profile) {
-  const birthContent = profile.birthCard;
-  const personaContent = profile.personaCard;
-  const birthLabel = formatProfileCardLabel(birthContent);
-  const personaLabel = formatProfileCardLabel(personaContent);
-
-  if (!profile.hasDistinctPersona) {
-    return {
-      variant: 'integrated',
-      badge: '같은 카드, 같은 방향',
-      birthLabel,
-      personaLabel,
-      description: `내면과 사회적 인상 모두 “${birthContent.tagline}”이라는 같은 방향으로 이어져요.`
-    };
+  if (!profile.hasPersona || !profile.personaCard) {
+    return null;
   }
 
+  const birthContent = profile.birthCard;
+  const personaContent = profile.personaCard;
+
   return {
-    variant: 'distinct',
     badge: '내 중심이 다른 모습으로 표현돼요',
-    birthLabel,
-    personaLabel,
+    birthLabel: formatProfileCardLabel(birthContent),
+    personaLabel: formatProfileCardLabel(personaContent),
     description: `내면에서는 “${birthContent.tagline}”의 성향이 중심을 이루고, 사람들에게는 “${personaContent.tagline}”의 모습이 먼저 보일 수 있어요.`
   };
 }
@@ -272,8 +263,8 @@ function buildTarotProfile(parsedDate, today = new Date()) {
   const birthReduction = reduceToBirthCard(parsedDate.year, parsedDate.month, parsedDate.day);
   const birthCard = getCardContent(birthReduction.birthNumber);
   const personaNumber = getPersonaCard(birthReduction);
-  const hasDistinctPersona = personaNumber !== null;
-  const personaCard = hasDistinctPersona ? getCardContent(personaNumber) : birthCard;
+  const hasPersona = personaNumber !== null;
+  const personaCard = hasPersona ? getCardContent(personaNumber) : null;
   const currentYear = today.getFullYear();
 
   const years = [currentYear - 1, currentYear, currentYear + 1].map((year) => {
@@ -293,7 +284,7 @@ function buildTarotProfile(parsedDate, today = new Date()) {
     birthCard,
     personaNumber,
     personaCard,
-    hasDistinctPersona,
+    hasPersona,
     years
   };
 }

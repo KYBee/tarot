@@ -87,29 +87,29 @@ test('reduceToBirthCard captures first two-digit persona card', () => {
   assert.deepEqual(result.steps, [2036, 11, 2]);
 });
 
-test('buildTarotProfile reuses the birth card for an integrated persona result', () => {
+test('buildTarotProfile leaves persona empty when no two-digit card appears', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1997, month: 10, day: 17 },
     new Date('2026-09-01T00:00:00+09:00')
   );
 
   assert.equal(profile.personaNumber, null);
-  assert.equal(profile.hasDistinctPersona, false);
-  assert.equal(profile.personaCard, profile.birthCard);
-  assert.equal(profile.personaCard.canonicalNumber, 8);
+  assert.equal(profile.personaCard, null);
+  assert.equal(profile.hasPersona, false);
+  assert.equal('hasDistinctPersona' in profile, false);
   assert.equal('wingNumber' in profile, false);
   assert.equal('wingCard' in profile, false);
 });
 
-test('buildTarotProfile keeps a distinct two-digit persona card', () => {
+test('buildTarotProfile keeps a two-digit persona card when one appears', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1993, month: 12, day: 31 },
     new Date('2026-09-01T00:00:00+09:00')
   );
 
   assert.equal(profile.personaNumber, 11);
-  assert.equal(profile.hasDistinctPersona, true);
   assert.equal(profile.personaCard.canonicalNumber, 11);
+  assert.equal(profile.hasPersona, true);
   assert.notEqual(profile.personaCard, profile.birthCard);
 });
 
@@ -207,29 +207,22 @@ test('getRoleDescription selects role copy and falls back to the common profile'
   );
 });
 
-test('buildProfileRelationship explains an integrated profile as one direction', () => {
+test('buildProfileRelationship returns null when persona is absent', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1997, month: 10, day: 17 },
     new Date('2026-04-12T00:00:00+09:00')
   );
 
-  assert.deepEqual(tarot.buildProfileRelationship(profile), {
-    variant: 'integrated',
-    badge: '같은 카드, 같은 방향',
-    birthLabel: '8 힘',
-    personaLabel: '8 힘',
-    description: '내면과 사회적 인상 모두 “거친 힘을 억누르지 않고 부드럽게 다루는 사람”이라는 같은 방향으로 이어져요.'
-  });
+  assert.equal(tarot.buildProfileRelationship(profile), null);
 });
 
-test('buildProfileRelationship explains a distinct outward expression', () => {
+test('buildProfileRelationship explains a persona card outward expression', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1993, month: 12, day: 31 },
     new Date('2026-04-12T00:00:00+09:00')
   );
 
   assert.deepEqual(tarot.buildProfileRelationship(profile), {
-    variant: 'distinct',
     badge: '내 중심이 다른 모습으로 표현돼요',
     birthLabel: '2 여사제',
     personaLabel: '11 정의',
