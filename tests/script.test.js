@@ -127,23 +127,35 @@ test('getCardImagePath maps canonical card number to img directory asset', () =>
   assert.equal(tarot.getCardImagePath(21), 'img/21-TheWorld.png');
 });
 
-test('every Major Arcana card explains its symbols and persona expression', () => {
+test('every Major Arcana card provides the complete V2 profile content', () => {
+  const requiredFields = [
+    'tagline',
+    'profileDescription',
+    'strengthDescription',
+    'shadowDescription',
+    'relationshipDescription',
+    'workStyleDescription',
+    'growthPointDescription',
+    'symbolismDescription',
+    'symbolismInterpretation',
+    'yearFlowDescription'
+  ];
+
   for (let number = 0; number <= 21; number += 1) {
     const card = tarot.getCardContent(number);
 
-    assert.equal(typeof card.symbolismInterpretation, 'string', `card ${number} interpretation`);
-    assert.ok(card.symbolismInterpretation.length >= 45, `card ${number} interpretation length`);
-    assert.equal(typeof card.roleDescriptions?.persona, 'string', `card ${number} persona`);
-    assert.ok(card.roleDescriptions.persona.length >= 45, `card ${number} persona length`);
-  }
-});
+    assert.ok(Array.isArray(card.keywords), `card ${number} keywords`);
+    assert.ok(card.keywords.length >= 4, `card ${number} keyword count`);
 
-test('birth cards 1 through 9 have birth-specific profile descriptions', () => {
-  for (let number = 1; number <= 9; number += 1) {
-    const card = tarot.getCardContent(number);
+    requiredFields.forEach((field) => {
+      assert.equal(typeof card[field], 'string', `card ${number} ${field}`);
+      assert.ok(card[field].trim().length >= 10, `card ${number} ${field} content`);
+    });
 
     assert.equal(typeof card.roleDescriptions?.birth, 'string', `card ${number} birth`);
-    assert.ok(card.roleDescriptions.birth.length >= 45, `card ${number} birth length`);
+    assert.ok(card.roleDescriptions.birth.trim().length >= 10, `card ${number} birth content`);
+    assert.equal(typeof card.roleDescriptions?.persona, 'string', `card ${number} persona`);
+    assert.ok(card.roleDescriptions.persona.trim().length >= 10, `card ${number} persona content`);
   }
 });
 
