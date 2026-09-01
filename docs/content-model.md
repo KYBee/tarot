@@ -43,7 +43,7 @@
 - `relationshipDescription`, `workStyleDescription`: 관계와 일에서 드러나는 경향.
 - `growthPointDescription`: 사용자가 선택할 수 있는 균형점.
 - `roleDescriptions.birth`: 탄생카드로 읽을 때의 중심 욕구와 성향. 0~21에 보관하되 현재 계산 결과에서는 1~9만 사용한다.
-- `roleDescriptions.persona`: 사회적 인상, 맡기 쉬운 역할, 그 이미지의 부담. 통합형을 포함해 0~21 전체에 제공한다.
+- `roleDescriptions.persona`: 사회적 인상, 맡기 쉬운 역할, 그 이미지의 부담. 모든 카드가 다른 생년월일에서 페르소나가 될 수 있으므로 0~21 전체에 제공한다.
 - `yearFlowDescription`: 작년/올해/내년 영역에서만 사용하는 흐름형 해석.
 
 ## 4. 카드 타입 설명
@@ -57,10 +57,6 @@
   persona: {
     title: "페르소나 카드",
     definition: "페르소나 카드는 사회 속에서 드러나는 나의 얼굴을 의미합니다."
-  },
-  personaIntegrated: {
-    label: "탄생·페르소나 통합형",
-    trace: "중간 축약 과정에서 별도의 두 자리 카드가 나오지 않아 탄생카드와 같은 카드로 읽습니다."
   }
 }
 ```
@@ -72,17 +68,16 @@
   birthCard,
   personaCard,
   personaNumber,
-  hasDistinctPersona,
+  hasPersona,
   years
 }
 ```
 
-- 별도 페르소나가 있으면 `personaCard`는 해당 카드이고 `hasDistinctPersona`는 `true`다.
-- 별도 페르소나가 없으면 계산 결과인 `personaNumber`는 `null`로 유지한다.
-- 이때 `personaCard`는 `birthCard`, `hasDistinctPersona`는 `false`다.
-- UI는 이를 결손이나 빈 상태가 아니라 `탄생·페르소나 통합형`으로 보여준다.
-- 관계 합성 결과는 `variant`, `badge`, 두 카드 label, `description`을 가진다.
-- 통합형은 `같은 카드, 같은 방향`, 분리형은 `내 중심이 다른 모습으로 표현돼요`로 설명한다.
+- 별도 페르소나가 있으면 `personaCard`는 해당 카드이고 `hasPersona`는 `true`다.
+- 별도 페르소나가 없으면 `personaNumber`와 `personaCard`는 `null`, `hasPersona`는 `false`다.
+- 페르소나가 없을 때 UI는 페르소나 슬라이드, 단계 탐색, 스와이프 안내를 숨긴다.
+- 페르소나가 있을 때만 관계 합성 결과인 `badge`, 두 카드 label, `description`을 만든다.
+- 관계 배지는 `내 중심이 다른 모습으로 표현돼요`를 사용한다.
 
 ## 6. 실제 렌더링 위치
 
