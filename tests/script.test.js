@@ -354,6 +354,39 @@ test('getShareText includes the configured production URL', () => {
   assert.match(shareText, /https:\/\/tarot-zeta-two\.vercel\.app\/?/);
 });
 
+test('getShareText omits persona when the profile has no persona card', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+  const shareText = tarot.getShareText(profile);
+
+  assert.match(shareText, /탄생카드: 8 힘/);
+  assert.doesNotMatch(shareText, /페르소나카드:/);
+});
+
+test('getShareText includes persona when the profile has a persona card', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+  const shareText = tarot.getShareText(profile);
+
+  assert.match(shareText, /탄생카드: 2 여사제/);
+  assert.match(shareText, /페르소나카드: 11 정의/);
+});
+
+test('optional persona implementation has no integrated-state remnants', () => {
+  const contentSource = fs.readFileSync(
+    path.join(__dirname, '..', 'data', 'card-content.js'),
+    'utf8'
+  );
+
+  assert.doesNotMatch(scriptSource, /hasDistinctPersona|personaIntegrated|is-integrated/);
+  assert.doesNotMatch(contentSource, /personaIntegrated|탄생·페르소나 통합형/);
+  assert.doesNotMatch(styleCss, /\.is-integrated/);
+});
+
 test('buildKakaoSharePayload creates a Kakao share payload with runtime URL', () => {
   assert.equal(typeof tarot.buildKakaoSharePayload, 'function');
 

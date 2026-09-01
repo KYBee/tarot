@@ -550,10 +550,6 @@ body {
     line-height: 1.75;
 }
 
-.is-integrated .card-visual {
-    box-shadow: 0 0 34px rgba(212, 175, 55, 0.22);
-}
-
 .profile-details-section {
     padding: 34px 20px 8px;
 }

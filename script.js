@@ -506,11 +506,18 @@ function getShareText(profile = currentProfile) {
   const birth = profile.birthCard;
   const currentYearFlow = profile.years[1];
   const shareUrl = getShareUrl();
+  const profileLines = [`탄생카드: ${birth.displayNumber} ${birth.name}`];
+
+  if (profile.hasPersona && profile.personaCard) {
+    profileLines.push(
+      `페르소나카드: ${profile.personaCard.displayNumber} ${profile.personaCard.name}`
+    );
+  }
 
   return [
     '너의 타로는? | 나의 타로 프로필',
     '',
-    `탄생카드: ${birth.displayNumber} ${birth.name}`,
+    ...profileLines,
     `기본 의미: ${birth.keywords.join(', ')}`,
     `올해 흐름: ${currentYearFlow.cardContent.displayNumber} ${currentYearFlow.cardContent.name}`,
     '',
