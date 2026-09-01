@@ -9,6 +9,7 @@ const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8'
 
 function createMockElement() {
   return {
+    hidden: false,
     value: '',
     textContent: '',
     innerHTML: '',
@@ -185,6 +186,11 @@ test('rendering source connects relationship, details, and profile steps', () =>
   assert.match(scriptSource, /res-relationship-description/);
   assert.match(scriptSource, /res-detail-growth/);
   assert.match(scriptSource, /querySelectorAll\('\.profile-step'\)/);
+  assert.match(scriptSource, /renderProfileResultVisibility\(currentProfile\)/);
+  assert.match(scriptSource, /element\.hidden = hidden/);
+  assert.match(scriptSource, /if \(!profile\.hasPersona \|\| !profile\.personaCard\)/);
+  assert.match(scriptSource, /updateProfileSteps\(0, currentProfile\.hasPersona\)/);
+  assert.match(scriptSource, /const isActive = enabled && stepIndex === index/);
   assert.doesNotMatch(scriptSource, /querySelectorAll\('\.dot'\)/);
 });
 
@@ -254,6 +260,45 @@ test('getProfileResultVisibility shows persona navigation when persona exists', 
     showNavigation: true,
     showSwipeHint: true
   });
+});
+
+test('renderProfileResultVisibility toggles persona, navigation, and hint together', () => {
+  const personaSlide = createMockElement();
+  const navigation = createMockElement();
+  const swipeHint = createMockElement();
+  const originalGetElementById = global.document.getElementById;
+  const originalQuerySelector = global.document.querySelector;
+
+  global.document.getElementById = (id) =>
+    id === 'item-persona' ? personaSlide : createMockElement();
+  global.document.querySelector = (selector) => {
+    if (selector === '.profile-steps') return navigation;
+    if (selector === '.swipe-hint') return swipeHint;
+    return null;
+  };
+
+  try {
+    const singleCardProfile = tarot.buildTarotProfile(
+      { year: 1997, month: 10, day: 17 },
+      new Date('2026-04-12T00:00:00+09:00')
+    );
+    tarot.renderProfileResultVisibility(singleCardProfile);
+    assert.equal(personaSlide.hidden, true);
+    assert.equal(navigation.hidden, true);
+    assert.equal(swipeHint.hidden, true);
+
+    const twoCardProfile = tarot.buildTarotProfile(
+      { year: 1993, month: 12, day: 31 },
+      new Date('2026-04-12T00:00:00+09:00')
+    );
+    tarot.renderProfileResultVisibility(twoCardProfile);
+    assert.equal(personaSlide.hidden, false);
+    assert.equal(navigation.hidden, false);
+    assert.equal(swipeHint.hidden, false);
+  } finally {
+    global.document.getElementById = originalGetElementById;
+    global.document.querySelector = originalQuerySelector;
+  }
 });
 
 test('getDetailedProfile selects the birth card V2 details', () => {

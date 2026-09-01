@@ -314,13 +314,13 @@ function showScreen(screenId) {
   }
 }
 
-function updateProfileSteps(index) {
+function updateProfileSteps(index, enabled = true) {
   if (typeof document === 'undefined') {
     return;
   }
 
   document.querySelectorAll('.profile-step').forEach((step, stepIndex) => {
-    const isActive = stepIndex === index;
+    const isActive = enabled && stepIndex === index;
     step.classList.toggle('active', isActive);
 
     if (isActive) {
@@ -330,7 +330,26 @@ function updateProfileSteps(index) {
     }
   });
 
-  document.getElementById('item-persona')?.classList.toggle('relationship-visible', index === 1);
+  document
+    .getElementById('item-persona')
+    ?.classList.toggle('relationship-visible', enabled && index === 1);
+}
+
+function setElementHidden(element, hidden) {
+  if (element) {
+    element.hidden = hidden;
+  }
+}
+
+function renderProfileResultVisibility(profile) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const visibility = getProfileResultVisibility(profile);
+  setElementHidden(document.getElementById('item-persona'), !visibility.showPersona);
+  setElementHidden(document.querySelector('.profile-steps'), !visibility.showNavigation);
+  setElementHidden(document.querySelector('.swipe-hint'), !visibility.showSwipeHint);
 }
 
 function setElementText(id, value) {
@@ -415,32 +434,22 @@ function renderBirthCardSection(profile) {
 }
 
 function renderPersonaCardSection(profile) {
-  const isIntegrated = !profile.hasDistinctPersona;
-  const relationship = buildProfileRelationship(profile);
-  const trace = isIntegrated
-    ? APP_COPY.personaIntegrated?.trace ||
-      '중간 축약 과정에서 별도의 두 자리 카드가 나오지 않아 탄생카드와 같은 카드로 읽습니다.'
-    : `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`;
+  if (!profile.hasPersona || !profile.personaCard) {
+    return;
+  }
 
-  const relationshipElement = document.getElementById('res-profile-relationship');
+  const relationship = buildProfileRelationship(profile);
+  const trace = `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`;
+
   setElementText('res-relationship-badge', relationship.badge);
   setElementText('res-relationship-birth', relationship.birthLabel);
   setElementText('res-relationship-persona', relationship.personaLabel);
   setElementText('res-relationship-description', relationship.description);
 
-  if (relationshipElement) {
-    relationshipElement.dataset.variant = relationship.variant;
-  }
-
   renderCardSection('res-persona', APP_COPY.persona, profile.personaCard, {
     role: 'persona',
     trace
   });
-
-  const item = document.getElementById('item-persona');
-  if (item) {
-    item.classList.toggle('is-integrated', isIntegrated);
-  }
 }
 
 function renderDetailedProfileSection(profile) {
@@ -695,6 +704,7 @@ function handleStart() {
   window.setTimeout(() => {
     currentProfile = buildTarotProfile(parsedDate);
     resetProfileDetails();
+    renderProfileResultVisibility(currentProfile);
     renderBirthCardSection(currentProfile);
     renderPersonaCardSection(currentProfile);
     renderDetailedProfileSection(currentProfile);
@@ -705,7 +715,7 @@ function handleStart() {
       swiper.scrollLeft = 0;
     }
 
-    updateProfileSteps(0);
+    updateProfileSteps(0, currentProfile.hasPersona);
     setShareFeedback('');
     showScreen('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -787,6 +797,7 @@ const exported = {
   resetView,
   renderBirthCardSection,
   renderPersonaCardSection,
+  renderProfileResultVisibility,
   renderDetailedProfileSection,
   resetProfileDetails,
   renderYearFlowSection
