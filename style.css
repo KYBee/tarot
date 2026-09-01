@@ -346,25 +346,41 @@ body {
     text-align: center;
 }
 
-.swiper-dots {
+.profile-steps {
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 10px;
 }
 
-.dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.16);
-    transition: width 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+.profile-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--text-soft);
+    font: inherit;
+    cursor: pointer;
+    opacity: 0.62;
+    transition: color 0.2s ease, opacity 0.2s ease;
 }
 
-.dot.active {
-    width: 18px;
-    background: var(--accent-gold);
-    box-shadow: 0 0 8px var(--accent-gold-glow);
+.profile-step.active {
+    color: var(--accent-gold);
+    opacity: 1;
+}
+
+.profile-step-number {
+    font-size: 0.7rem;
+}
+
+.profile-step-line {
+    width: 34px;
+    height: 1px;
+    background: rgba(212, 175, 55, 0.35);
 }
 
 .swipe-hint {
@@ -472,16 +488,105 @@ body {
     border-radius: 0 0 16px 16px;
 }
 
-.persona-state {
-    min-height: 1.3rem;
+.card-tagline {
+    color: var(--text-main);
+    font-size: 1.02rem;
+    font-weight: 700;
+    line-height: 1.65;
+}
+
+.profile-relationship {
+    width: 100%;
+    max-width: 410px;
+    margin: 8px 0 12px;
+    padding: 18px;
+    border: 1px solid rgba(212, 175, 55, 0.48);
+    border-radius: 18px;
+    background: rgba(20, 8, 37, 0.72);
+    box-shadow: inset 0 0 24px rgba(212, 175, 55, 0.06);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 240ms ease, transform 240ms ease;
+}
+
+.relationship-visible .profile-relationship {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.relationship-badge {
     color: var(--accent-gold);
-    font-size: 0.78rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    font-weight: 700;
     text-align: center;
+}
+
+.relationship-path {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.relationship-card-label {
+    min-width: 0;
+    padding: 9px 8px;
+    border-radius: 999px;
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--text-main);
+    font-size: 0.8rem;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.relationship-arrow {
+    color: var(--accent-gold);
+}
+
+.relationship-description {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    line-height: 1.75;
 }
 
 .is-integrated .card-visual {
     box-shadow: 0 0 34px rgba(212, 175, 55, 0.22);
+}
+
+.profile-details-section {
+    padding: 34px 20px 8px;
+}
+
+.profile-detail {
+    margin-bottom: 12px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 16px;
+    background: rgba(20, 8, 37, 0.62);
+    overflow: hidden;
+}
+
+.profile-detail summary {
+    padding: 16px 18px;
+    color: var(--text-main);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.profile-detail-content {
+    padding: 0 18px 18px;
+}
+
+.profile-detail-content h4 {
+    margin: 16px 0 6px;
+    color: var(--accent-gold);
+    font-size: 0.8rem;
+}
+
+.profile-detail-content p {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    line-height: 1.75;
 }
 
 .is-hidden {
@@ -725,6 +830,23 @@ body {
 
     .mini-card {
         max-width: 150px;
+    }
+}
+
+@media (max-width: 360px) {
+    .profile-details-section {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .relationship-path {
+        gap: 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .profile-relationship {
+        transition: none;
     }
 }
 

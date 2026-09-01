@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const scriptSource = fs.readFileSync(path.join(__dirname, '..', 'script.js'), 'utf8');
+const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
 
 function createMockElement() {
   return {
@@ -127,35 +129,71 @@ test('getCardImagePath maps canonical card number to img directory asset', () =>
   assert.equal(tarot.getCardImagePath(21), 'img/21-TheWorld.png');
 });
 
-test('every Major Arcana card explains its symbols and persona expression', () => {
+test('every Major Arcana card provides the complete V2 profile content', () => {
+  const requiredFields = [
+    'tagline',
+    'profileDescription',
+    'strengthDescription',
+    'shadowDescription',
+    'relationshipDescription',
+    'workStyleDescription',
+    'growthPointDescription',
+    'symbolismDescription',
+    'symbolismInterpretation',
+    'yearFlowDescription'
+  ];
+
   for (let number = 0; number <= 21; number += 1) {
     const card = tarot.getCardContent(number);
 
-    assert.equal(typeof card.symbolismInterpretation, 'string', `card ${number} interpretation`);
-    assert.ok(card.symbolismInterpretation.length >= 45, `card ${number} interpretation length`);
-    assert.equal(typeof card.roleDescriptions?.persona, 'string', `card ${number} persona`);
-    assert.ok(card.roleDescriptions.persona.length >= 45, `card ${number} persona length`);
-  }
-});
+    assert.ok(Array.isArray(card.keywords), `card ${number} keywords`);
+    assert.ok(card.keywords.length >= 4, `card ${number} keyword count`);
 
-test('birth cards 1 through 9 have birth-specific profile descriptions', () => {
-  for (let number = 1; number <= 9; number += 1) {
-    const card = tarot.getCardContent(number);
+    requiredFields.forEach((field) => {
+      assert.equal(typeof card[field], 'string', `card ${number} ${field}`);
+      assert.ok(card[field].trim().length >= 10, `card ${number} ${field} content`);
+    });
 
     assert.equal(typeof card.roleDescriptions?.birth, 'string', `card ${number} birth`);
-    assert.ok(card.roleDescriptions.birth.length >= 45, `card ${number} birth length`);
+    assert.ok(card.roleDescriptions.birth.trim().length >= 10, `card ${number} birth content`);
+    assert.equal(typeof card.roleDescriptions?.persona, 'string', `card ${number} persona`);
+    assert.ok(card.roleDescriptions.persona.trim().length >= 10, `card ${number} persona content`);
   }
 });
 
-test('result markup contains two slides and symbolism interpretation anchors', () => {
+test('result markup exposes relationship steps and V2 detail anchors', () => {
   const slideIds = indexHtml.match(/id="item-(?:birth|persona|wing)"/g) || [];
-  const dots = indexHtml.match(/class="dot(?: active)?"/g) || [];
+  const steps = indexHtml.match(/class="profile-step(?: active)?"/g) || [];
 
   assert.deepEqual(slideIds, ['id="item-birth"', 'id="item-persona"']);
-  assert.equal(dots.length, 2);
-  assert.match(indexHtml, /id="res-birth-symbolism-interpretation"/);
-  assert.match(indexHtml, /id="res-persona-symbolism-interpretation"/);
+  assert.equal(steps.length, 2);
+  assert.match(indexHtml, /aria-label="프로필 카드 단계"/);
+  assert.match(indexHtml, /id="res-birth-tagline"/);
+  assert.match(indexHtml, /id="res-birth-overview"/);
+  assert.match(indexHtml, /id="res-persona-tagline"/);
+  assert.match(indexHtml, /id="res-profile-relationship"/);
+  assert.match(indexHtml, /id="res-relationship-badge"/);
+  assert.match(indexHtml, /id="res-relationship-description"/);
+  assert.match(indexHtml, /id="profile-details"/);
+  assert.equal((indexHtml.match(/<details class="profile-detail"/g) || []).length, 3);
   assert.doesNotMatch(indexHtml, /res-wing|item-wing|날개 카드/);
+});
+
+test('rendering source connects relationship, details, and profile steps', () => {
+  assert.match(scriptSource, /buildProfileRelationship\(profile\)/);
+  assert.match(scriptSource, /getDetailedProfile\(profile\.birthCard\)/);
+  assert.match(scriptSource, /res-relationship-description/);
+  assert.match(scriptSource, /res-detail-growth/);
+  assert.match(scriptSource, /querySelectorAll\('\.profile-step'\)/);
+  assert.doesNotMatch(scriptSource, /querySelectorAll\('\.dot'\)/);
+});
+
+test('profile relationship styles include responsive and reduced-motion states', () => {
+  assert.match(styleCss, /\.profile-relationship/);
+  assert.match(styleCss, /\.profile-steps/);
+  assert.match(styleCss, /\.profile-detail/);
+  assert.match(styleCss, /\.relationship-visible/);
+  assert.match(styleCss, /prefers-reduced-motion:\s*reduce/);
 });
 
 test('getRoleDescription selects role copy and falls back to the common profile', () => {
@@ -167,6 +205,72 @@ test('getRoleDescription selects role copy and falls back to the common profile'
     tarot.getRoleDescription({ profileDescription: 'fallback' }, 'persona'),
     'fallback'
   );
+});
+
+test('buildProfileRelationship explains an integrated profile as one direction', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.buildProfileRelationship(profile), {
+    variant: 'integrated',
+    badge: '같은 카드, 같은 방향',
+    birthLabel: '8 힘',
+    personaLabel: '8 힘',
+    description: '내면과 사회적 인상 모두 “거친 힘을 억누르지 않고 부드럽게 다루는 사람”이라는 같은 방향으로 이어져요.'
+  });
+});
+
+test('buildProfileRelationship explains a distinct outward expression', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.buildProfileRelationship(profile), {
+    variant: 'distinct',
+    badge: '내 중심이 다른 모습으로 표현돼요',
+    birthLabel: '2 여사제',
+    personaLabel: '11 정의',
+    description: '내면에서는 “말보다 깊은 곳에서 답을 읽는 사람”의 성향이 중심을 이루고, 사람들에게는 “감정보다 기준을 세우고 균형 있게 판단하는 사람”의 모습이 먼저 보일 수 있어요.'
+  });
+});
+
+test('getDetailedProfile selects the birth card V2 details', () => {
+  const card = tarot.getCardContent(8);
+
+  assert.deepEqual(tarot.getDetailedProfile(card), {
+    strength: card.strengthDescription,
+    shadow: card.shadowDescription,
+    relationship: card.relationshipDescription,
+    workStyle: card.workStyleDescription,
+    growthPoint: card.growthPointDescription
+  });
+});
+
+test('getDetailedProfile falls back to the common profile for missing fields', () => {
+  assert.deepEqual(tarot.getDetailedProfile({ profileDescription: 'fallback' }), {
+    strength: 'fallback',
+    shadow: 'fallback',
+    relationship: 'fallback',
+    workStyle: 'fallback',
+    growthPoint: 'fallback'
+  });
+});
+
+test('resetProfileDetails closes every open profile detail', () => {
+  const originalQuerySelectorAll = global.document.querySelectorAll;
+  const details = [{ open: true }, { open: true }, { open: false }];
+  global.document.querySelectorAll = (selector) =>
+    selector === '.profile-detail' ? details : originalQuerySelectorAll(selector);
+
+  try {
+    tarot.resetProfileDetails();
+    assert.deepEqual(details.map((detail) => detail.open), [false, false, false]);
+  } finally {
+    global.document.querySelectorAll = originalQuerySelectorAll;
+  }
 });
 
 test('getShareText includes the configured production URL', () => {
