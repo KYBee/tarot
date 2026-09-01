@@ -230,6 +230,32 @@ test('buildProfileRelationship explains a persona card outward expression', () =
   });
 });
 
+test('getProfileResultVisibility hides persona navigation when persona is absent', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.getProfileResultVisibility(profile), {
+    showPersona: false,
+    showNavigation: false,
+    showSwipeHint: false
+  });
+});
+
+test('getProfileResultVisibility shows persona navigation when persona exists', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.getProfileResultVisibility(profile), {
+    showPersona: true,
+    showNavigation: true,
+    showSwipeHint: true
+  });
+});
+
 test('getDetailedProfile selects the birth card V2 details', () => {
   const card = tarot.getCardContent(8);
 

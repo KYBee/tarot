@@ -207,6 +207,16 @@ function buildProfileRelationship(profile) {
   };
 }
 
+function getProfileResultVisibility(profile) {
+  const showPersona = Boolean(profile?.hasPersona && profile.personaCard);
+
+  return {
+    showPersona,
+    showNavigation: showPersona,
+    showSwipeHint: showPersona
+  };
+}
+
 function getDetailedProfile(cardContent) {
   const fallback = cardContent?.profileDescription || '';
 
@@ -763,6 +773,7 @@ const exported = {
   getCardContent,
   getRoleDescription,
   buildProfileRelationship,
+  getProfileResultVisibility,
   getDetailedProfile,
   getCardImagePath,
   getShareUrl,
