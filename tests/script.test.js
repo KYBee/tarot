@@ -123,6 +123,26 @@ test('getCardImagePath maps canonical card number to img directory asset', () =>
   assert.equal(tarot.getCardImagePath(21), 'img/21-TheWorld.png');
 });
 
+test('every Major Arcana card explains its symbols and persona expression', () => {
+  for (let number = 0; number <= 21; number += 1) {
+    const card = tarot.getCardContent(number);
+
+    assert.equal(typeof card.symbolismInterpretation, 'string', `card ${number} interpretation`);
+    assert.ok(card.symbolismInterpretation.length >= 45, `card ${number} interpretation length`);
+    assert.equal(typeof card.roleDescriptions?.persona, 'string', `card ${number} persona`);
+    assert.ok(card.roleDescriptions.persona.length >= 45, `card ${number} persona length`);
+  }
+});
+
+test('birth cards 1 through 9 have birth-specific profile descriptions', () => {
+  for (let number = 1; number <= 9; number += 1) {
+    const card = tarot.getCardContent(number);
+
+    assert.equal(typeof card.roleDescriptions?.birth, 'string', `card ${number} birth`);
+    assert.ok(card.roleDescriptions.birth.length >= 45, `card ${number} birth length`);
+  }
+});
+
 test('getShareText includes the configured production URL', () => {
   assert.equal(typeof tarot.getShareText, 'function');
 
