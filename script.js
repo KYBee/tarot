@@ -175,10 +175,16 @@ function getCardContent(cardNumber) {
       englishName: 'Unknown',
       keywords: ['데이터 확인 필요'],
       symbolismDescription: '카드 데이터를 아직 연결하지 못했어요.',
+      symbolismInterpretation: '카드 이미지와 상징 해석 데이터를 다시 확인해주세요.',
       profileDescription: '문서와 데이터 파일을 다시 확인해주세요.',
+      roleDescriptions: {},
       yearFlowDescription: '연도 흐름 데이터를 아직 연결하지 못했어요.'
     }
   );
+}
+
+function getRoleDescription(cardContent, role) {
+  return cardContent.roleDescriptions?.[role] || cardContent.profileDescription || '';
 }
 
 function getCardImagePath(cardNumber) {
@@ -248,20 +254,6 @@ function buildTarotProfile(parsedDate, today = new Date()) {
     personaCard,
     hasDistinctPersona,
     years
-  };
-}
-
-function createPersonaFallbackCard() {
-  return {
-    displayNumber: '-',
-    name: APP_COPY.personaEmpty?.title || '단일 카드 타입',
-    keywords: APP_COPY.personaEmpty?.keywords || ['탄생카드의 결을 크게 공유합니다.'],
-    symbolismDescription:
-      APP_COPY.personaEmpty?.symbolismDescription ||
-      '이번 계산에서는 별도 페르소나 카드가 나오지 않았어요.',
-    profileDescription:
-      APP_COPY.personaEmpty?.profileDescription ||
-      '겉으로 드러나는 모습도 탄생카드의 결을 크게 공유합니다.'
   };
 }
 
@@ -338,8 +330,12 @@ function renderCardSection(prefix, typeCopy, cardContent, options = {}) {
     options.symbolismDescription || cardContent.symbolismDescription
   );
   setElementText(
+    `${prefix}-symbolism-interpretation`,
+    options.symbolismInterpretation || cardContent.symbolismInterpretation || ''
+  );
+  setElementText(
     `${prefix}-profile`,
-    options.profileDescription || cardContent.profileDescription
+    options.profileDescription || getRoleDescription(cardContent, options.role)
   );
   setElementText(`${prefix}-trace`, options.trace || '');
   setImageSource(
@@ -352,6 +348,7 @@ function renderCardSection(prefix, typeCopy, cardContent, options = {}) {
 
 function renderBirthCardSection(profile) {
   renderCardSection('res-birth', APP_COPY.birth, profile.birthCard, {
+    role: 'birth',
     trace: formatBirthTrace(
       profile.birthDate.year,
       profile.birthDate.month,
@@ -362,42 +359,25 @@ function renderBirthCardSection(profile) {
 }
 
 function renderPersonaCardSection(profile) {
-  if (profile.personaNumber === null) {
-    const fallbackCard = createPersonaFallbackCard();
-    renderCardSection('res-persona', APP_COPY.persona, fallbackCard, {
-      displayNumber: fallbackCard.displayNumber,
-      name: fallbackCard.name,
-      keywords: fallbackCard.keywords,
-      symbolismDescription: fallbackCard.symbolismDescription,
-      profileDescription: fallbackCard.profileDescription,
-      trace: '중간 축약 과정에서 10부터 22 사이의 값이 직접 나타나지 않았어요.',
-      imagePath: '',
-      hideImage: true
-    });
+  const isIntegrated = !profile.hasDistinctPersona;
+  const trace = isIntegrated
+    ? APP_COPY.personaIntegrated?.trace ||
+      '중간 축약 과정에서 별도의 두 자리 카드가 나오지 않아 탄생카드와 같은 카드로 읽습니다.'
+    : `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`;
 
-    const item = document.getElementById('item-persona');
-    if (item) {
-      item.classList.add('is-empty');
-    }
-
-    return;
-  }
+  setElementText(
+    'res-persona-state',
+    isIntegrated ? APP_COPY.personaIntegrated?.label || '탄생·페르소나 통합형' : ''
+  );
+  renderCardSection('res-persona', APP_COPY.persona, profile.personaCard, {
+    role: 'persona',
+    trace
+  });
 
   const item = document.getElementById('item-persona');
   if (item) {
-    item.classList.remove('is-empty');
+    item.classList.toggle('is-integrated', isIntegrated);
   }
-
-  const personaCard = getCardContent(profile.personaNumber);
-  renderCardSection('res-persona', APP_COPY.persona, personaCard, {
-    trace: `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`
-  });
-}
-
-function renderWingCardSection(profile) {
-  renderCardSection('res-wing', APP_COPY.wing, profile.wingCard, {
-    trace: `날개 카드 = 탄생카드 ${profile.birthReduction.birthNumber} - 1 -> ${profile.wingCard.displayNumber}`
-  });
 }
 
 function renderYearFlowSection(profile) {
@@ -632,7 +612,6 @@ function handleStart() {
     currentProfile = buildTarotProfile(parsedDate);
     renderBirthCardSection(currentProfile);
     renderPersonaCardSection(currentProfile);
-    renderWingCardSection(currentProfile);
     renderYearFlowSection(currentProfile);
 
     const swiper = document.getElementById('card-swiper');
@@ -699,6 +678,7 @@ const exported = {
   getYearCard,
   getYearFlow,
   getCardContent,
+  getRoleDescription,
   getCardImagePath,
   getShareUrl,
   getShareText,
@@ -711,7 +691,6 @@ const exported = {
   resetView,
   renderBirthCardSection,
   renderPersonaCardSection,
-  renderWingCardSection,
   renderYearFlowSection
 };
 

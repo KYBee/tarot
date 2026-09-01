@@ -1,5 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 
 function createMockElement() {
   return {
@@ -141,6 +145,28 @@ test('birth cards 1 through 9 have birth-specific profile descriptions', () => {
     assert.equal(typeof card.roleDescriptions?.birth, 'string', `card ${number} birth`);
     assert.ok(card.roleDescriptions.birth.length >= 45, `card ${number} birth length`);
   }
+});
+
+test('result markup contains two slides and symbolism interpretation anchors', () => {
+  const slideIds = indexHtml.match(/id="item-(?:birth|persona|wing)"/g) || [];
+  const dots = indexHtml.match(/class="dot(?: active)?"/g) || [];
+
+  assert.deepEqual(slideIds, ['id="item-birth"', 'id="item-persona"']);
+  assert.equal(dots.length, 2);
+  assert.match(indexHtml, /id="res-birth-symbolism-interpretation"/);
+  assert.match(indexHtml, /id="res-persona-symbolism-interpretation"/);
+  assert.doesNotMatch(indexHtml, /res-wing|item-wing|날개 카드/);
+});
+
+test('getRoleDescription selects role copy and falls back to the common profile', () => {
+  const card = tarot.getCardContent(8);
+
+  assert.equal(tarot.getRoleDescription(card, 'birth'), card.roleDescriptions.birth);
+  assert.equal(tarot.getRoleDescription(card, 'persona'), card.roleDescriptions.persona);
+  assert.equal(
+    tarot.getRoleDescription({ profileDescription: 'fallback' }, 'persona'),
+    'fallback'
+  );
 });
 
 test('getShareText includes the configured production URL', () => {
