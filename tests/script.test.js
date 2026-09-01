@@ -159,14 +159,21 @@ test('every Major Arcana card provides the complete V2 profile content', () => {
   }
 });
 
-test('result markup contains two slides and symbolism interpretation anchors', () => {
+test('result markup exposes relationship steps and V2 detail anchors', () => {
   const slideIds = indexHtml.match(/id="item-(?:birth|persona|wing)"/g) || [];
-  const dots = indexHtml.match(/class="dot(?: active)?"/g) || [];
+  const steps = indexHtml.match(/class="profile-step(?: active)?"/g) || [];
 
   assert.deepEqual(slideIds, ['id="item-birth"', 'id="item-persona"']);
-  assert.equal(dots.length, 2);
-  assert.match(indexHtml, /id="res-birth-symbolism-interpretation"/);
-  assert.match(indexHtml, /id="res-persona-symbolism-interpretation"/);
+  assert.equal(steps.length, 2);
+  assert.match(indexHtml, /aria-label="프로필 카드 단계"/);
+  assert.match(indexHtml, /id="res-birth-tagline"/);
+  assert.match(indexHtml, /id="res-birth-overview"/);
+  assert.match(indexHtml, /id="res-persona-tagline"/);
+  assert.match(indexHtml, /id="res-profile-relationship"/);
+  assert.match(indexHtml, /id="res-relationship-badge"/);
+  assert.match(indexHtml, /id="res-relationship-description"/);
+  assert.match(indexHtml, /id="profile-details"/);
+  assert.equal((indexHtml.match(/<details class="profile-detail"/g) || []).length, 3);
   assert.doesNotMatch(indexHtml, /res-wing|item-wing|날개 카드/);
 });
 

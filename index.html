@@ -82,9 +82,19 @@
                                 <span class="card-name" id="res-birth-name">힘</span>
                             </div>
                             <div class="card-info-box card-frame thin">
+                                <div class="info-block identity-block">
+                                    <h4 class="info-label">한 줄 정체성</h4>
+                                    <p class="card-tagline" id="res-birth-tagline"></p>
+                                </div>
+                                <hr class="gold-divider">
                                 <div class="info-block">
                                     <h4 class="info-label">기본 의미</h4>
                                     <p class="info-meaning" id="res-birth-meaning">인내, 용기, 내면의 힘</p>
+                                </div>
+                                <hr class="gold-divider">
+                                <div class="info-block overview-block">
+                                    <h4 class="info-label">그래서 어떤 사람인가</h4>
+                                    <p class="info-desc" id="res-birth-overview"></p>
                                 </div>
                                 <hr class="gold-divider">
                                 <div class="info-block">
@@ -111,13 +121,26 @@
                         <div class="item-content">
                             <h3 class="item-title">페르소나 카드</h3>
                             <p class="type-definition" id="res-persona-type-def">페르소나 카드는 사회 속에서 드러나는 나의 얼굴을 의미합니다.</p>
-                            <p class="persona-state" id="res-persona-state"></p>
+                            <section class="profile-relationship" id="res-profile-relationship" aria-live="polite">
+                                <p class="relationship-badge" id="res-relationship-badge"></p>
+                                <div class="relationship-path" aria-label="탄생카드에서 페르소나카드로 이어지는 흐름">
+                                    <span class="relationship-card-label" id="res-relationship-birth"></span>
+                                    <span class="relationship-arrow" aria-hidden="true">→</span>
+                                    <span class="relationship-card-label" id="res-relationship-persona"></span>
+                                </div>
+                                <p class="relationship-description" id="res-relationship-description"></p>
+                            </section>
                             <div class="card-visual card-frame gold-glow">
                                 <img class="card-art" id="res-persona-art" src="img/11-Justice.png" alt="정의 카드 이미지">
                                 <span class="card-number" id="res-persona-num">11</span>
                                 <span class="card-name" id="res-persona-name">정의</span>
                             </div>
                             <div class="card-info-box card-frame thin">
+                                <div class="info-block identity-block">
+                                    <h4 class="info-label">한 줄 정체성</h4>
+                                    <p class="card-tagline" id="res-persona-tagline"></p>
+                                </div>
+                                <hr class="gold-divider">
                                 <div class="info-block">
                                     <h4 class="info-label">기본 의미</h4>
                                     <p class="info-meaning" id="res-persona-meaning">균형, 공정함, 판단</p>
@@ -145,12 +168,47 @@
                 </div>
 
                 <!-- Swiper Navigation Indicator -->
-                <div class="swiper-dots">
-                    <span class="dot active"></span>
-                    <span class="dot"></span>
-                </div>
+                <nav class="profile-steps" aria-label="프로필 카드 단계">
+                    <button class="profile-step active" type="button" data-slide-index="0" aria-current="step" aria-label="내 중심 1/2">
+                        <span class="profile-step-number">01</span>
+                        <span>내 중심</span>
+                    </button>
+                    <span class="profile-step-line" aria-hidden="true"></span>
+                    <button class="profile-step" type="button" data-slide-index="1" aria-label="보이는 나 2/2">
+                        <span class="profile-step-number">02</span>
+                        <span>보이는 나</span>
+                    </button>
+                </nav>
 
                 <p class="swipe-hint">← 옆으로 넘겨보세요 →</p>
+
+                <section class="profile-details-section" id="profile-details">
+                    <h3 class="section-title">나의 프로필 더 보기</h3>
+                    <details class="profile-detail">
+                        <summary>강점과 그림자</summary>
+                        <div class="profile-detail-content">
+                            <h4>강점</h4>
+                            <p id="res-detail-strength"></p>
+                            <h4>그림자</h4>
+                            <p id="res-detail-shadow"></p>
+                        </div>
+                    </details>
+                    <details class="profile-detail">
+                        <summary>관계와 일</summary>
+                        <div class="profile-detail-content">
+                            <h4>관계</h4>
+                            <p id="res-detail-relationship"></p>
+                            <h4>일</h4>
+                            <p id="res-detail-work"></p>
+                        </div>
+                    </details>
+                    <details class="profile-detail">
+                        <summary>성장 포인트</summary>
+                        <div class="profile-detail-content">
+                            <p id="res-detail-growth"></p>
+                        </div>
+                    </details>
+                </section>
 
                 <!-- Year Flow Section -->
                 <div class="year-flow-section">
