@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const scriptSource = fs.readFileSync(path.join(__dirname, '..', 'script.js'), 'utf8');
 
 function createMockElement() {
   return {
@@ -175,6 +176,15 @@ test('result markup exposes relationship steps and V2 detail anchors', () => {
   assert.match(indexHtml, /id="profile-details"/);
   assert.equal((indexHtml.match(/<details class="profile-detail"/g) || []).length, 3);
   assert.doesNotMatch(indexHtml, /res-wing|item-wing|날개 카드/);
+});
+
+test('rendering source connects relationship, details, and profile steps', () => {
+  assert.match(scriptSource, /buildProfileRelationship\(profile\)/);
+  assert.match(scriptSource, /getDetailedProfile\(profile\.birthCard\)/);
+  assert.match(scriptSource, /res-relationship-description/);
+  assert.match(scriptSource, /res-detail-growth/);
+  assert.match(scriptSource, /querySelectorAll\('\.profile-step'\)/);
+  assert.doesNotMatch(scriptSource, /querySelectorAll\('\.dot'\)/);
 });
 
 test('getRoleDescription selects role copy and falls back to the common profile', () => {

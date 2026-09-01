@@ -313,14 +313,23 @@ function showScreen(screenId) {
   }
 }
 
-function updateDots(index) {
+function updateProfileSteps(index) {
   if (typeof document === 'undefined') {
     return;
   }
 
-  document.querySelectorAll('.dot').forEach((dot, dotIndex) => {
-    dot.classList.toggle('active', dotIndex === index);
+  document.querySelectorAll('.profile-step').forEach((step, stepIndex) => {
+    const isActive = stepIndex === index;
+    step.classList.toggle('active', isActive);
+
+    if (isActive) {
+      step.setAttribute('aria-current', 'step');
+    } else {
+      step.removeAttribute('aria-current');
+    }
   });
+
+  document.getElementById('item-persona')?.classList.toggle('relationship-visible', index === 1);
 }
 
 function setElementText(id, value) {
@@ -360,6 +369,11 @@ function renderCardSection(prefix, typeCopy, cardContent, options = {}) {
   setElementText(`${prefix}-type-def`, options.typeDefinition || typeCopy.definition);
   setElementText(`${prefix}-num`, options.displayNumber || cardContent.displayNumber);
   setElementText(`${prefix}-name`, options.name || cardContent.name);
+  setElementText(`${prefix}-tagline`, options.tagline || cardContent.tagline || '');
+  setElementText(
+    `${prefix}-overview`,
+    options.commonProfileDescription || cardContent.profileDescription || ''
+  );
   setElementText(
     `${prefix}-meaning`,
     Array.isArray(options.keywords || cardContent.keywords)
@@ -401,15 +415,22 @@ function renderBirthCardSection(profile) {
 
 function renderPersonaCardSection(profile) {
   const isIntegrated = !profile.hasDistinctPersona;
+  const relationship = buildProfileRelationship(profile);
   const trace = isIntegrated
     ? APP_COPY.personaIntegrated?.trace ||
       '중간 축약 과정에서 별도의 두 자리 카드가 나오지 않아 탄생카드와 같은 카드로 읽습니다.'
     : `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`;
 
-  setElementText(
-    'res-persona-state',
-    isIntegrated ? APP_COPY.personaIntegrated?.label || '탄생·페르소나 통합형' : ''
-  );
+  const relationshipElement = document.getElementById('res-profile-relationship');
+  setElementText('res-relationship-badge', relationship.badge);
+  setElementText('res-relationship-birth', relationship.birthLabel);
+  setElementText('res-relationship-persona', relationship.personaLabel);
+  setElementText('res-relationship-description', relationship.description);
+
+  if (relationshipElement) {
+    relationshipElement.dataset.variant = relationship.variant;
+  }
+
   renderCardSection('res-persona', APP_COPY.persona, profile.personaCard, {
     role: 'persona',
     trace
@@ -419,6 +440,16 @@ function renderPersonaCardSection(profile) {
   if (item) {
     item.classList.toggle('is-integrated', isIntegrated);
   }
+}
+
+function renderDetailedProfileSection(profile) {
+  const details = getDetailedProfile(profile.birthCard);
+
+  setElementText('res-detail-strength', details.strength);
+  setElementText('res-detail-shadow', details.shadow);
+  setElementText('res-detail-relationship', details.relationship);
+  setElementText('res-detail-work', details.workStyle);
+  setElementText('res-detail-growth', details.growthPoint);
 }
 
 function renderYearFlowSection(profile) {
@@ -593,7 +624,7 @@ function resetView() {
     swiper.scrollLeft = 0;
   }
 
-  updateDots(0);
+  updateProfileSteps(0);
 }
 
 function sanitizeBirthFieldValue(value, maxLength) {
@@ -653,6 +684,7 @@ function handleStart() {
     currentProfile = buildTarotProfile(parsedDate);
     renderBirthCardSection(currentProfile);
     renderPersonaCardSection(currentProfile);
+    renderDetailedProfileSection(currentProfile);
     renderYearFlowSection(currentProfile);
 
     const swiper = document.getElementById('card-swiper');
@@ -660,14 +692,14 @@ function handleStart() {
       swiper.scrollLeft = 0;
     }
 
-    updateDots(0);
+    updateProfileSteps(0);
     setShareFeedback('');
     showScreen('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, 350);
 }
 
-function bindSwiperDots() {
+function bindProfileNavigation() {
   const swiper = document.getElementById('card-swiper');
   if (!swiper) {
     return;
@@ -676,7 +708,14 @@ function bindSwiperDots() {
   swiper.addEventListener('scroll', () => {
     const width = swiper.offsetWidth || 1;
     const activeIndex = Math.round(swiper.scrollLeft / width);
-    updateDots(activeIndex);
+    updateProfileSteps(activeIndex);
+  });
+
+  document.querySelectorAll('.profile-step').forEach((step) => {
+    step.addEventListener('click', () => {
+      const index = Number(step.dataset.slideIndex);
+      swiper.scrollTo({ left: swiper.offsetWidth * index, behavior: 'smooth' });
+    });
   });
 }
 
@@ -696,7 +735,7 @@ function bindEvents() {
     input?.addEventListener('blur', handleBirthFieldBlur);
   });
 
-  bindSwiperDots();
+  bindProfileNavigation();
 }
 
 function initApp() {
@@ -707,7 +746,7 @@ function initApp() {
   initKakaoShare();
   bindEvents();
   showScreen('landing');
-  updateDots(0);
+  updateProfileSteps(0);
 }
 
 const exported = {
@@ -734,6 +773,7 @@ const exported = {
   resetView,
   renderBirthCardSection,
   renderPersonaCardSection,
+  renderDetailedProfileSection,
   renderYearFlowSection
 };
 
