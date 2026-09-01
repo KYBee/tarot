@@ -195,6 +195,7 @@ test('rendering source connects relationship, details, and profile steps', () =>
 });
 
 test('profile relationship styles include responsive and reduced-motion states', () => {
+  assert.match(styleCss, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important;/s);
   assert.match(styleCss, /\.profile-relationship/);
   assert.match(styleCss, /\.profile-steps/);
   assert.match(styleCss, /\.profile-detail/);
