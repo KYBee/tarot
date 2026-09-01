@@ -5,6 +5,7 @@ const path = require('node:path');
 
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const scriptSource = fs.readFileSync(path.join(__dirname, '..', 'script.js'), 'utf8');
+const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
 
 function createMockElement() {
   return {
@@ -185,6 +186,14 @@ test('rendering source connects relationship, details, and profile steps', () =>
   assert.match(scriptSource, /res-detail-growth/);
   assert.match(scriptSource, /querySelectorAll\('\.profile-step'\)/);
   assert.doesNotMatch(scriptSource, /querySelectorAll\('\.dot'\)/);
+});
+
+test('profile relationship styles include responsive and reduced-motion states', () => {
+  assert.match(styleCss, /\.profile-relationship/);
+  assert.match(styleCss, /\.profile-steps/);
+  assert.match(styleCss, /\.profile-detail/);
+  assert.match(styleCss, /\.relationship-visible/);
+  assert.match(styleCss, /prefers-reduced-motion:\s*reduce/);
 });
 
 test('getRoleDescription selects role copy and falls back to the common profile', () => {
