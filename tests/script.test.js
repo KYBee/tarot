@@ -181,6 +181,58 @@ test('getRoleDescription selects role copy and falls back to the common profile'
   );
 });
 
+test('buildProfileRelationship explains an integrated profile as one direction', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.buildProfileRelationship(profile), {
+    variant: 'integrated',
+    badge: '같은 카드, 같은 방향',
+    birthLabel: '8 힘',
+    personaLabel: '8 힘',
+    description: '내면과 사회적 인상 모두 “거친 힘을 억누르지 않고 부드럽게 다루는 사람”이라는 같은 방향으로 이어져요.'
+  });
+});
+
+test('buildProfileRelationship explains a distinct outward expression', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.buildProfileRelationship(profile), {
+    variant: 'distinct',
+    badge: '내 중심이 다른 모습으로 표현돼요',
+    birthLabel: '2 여사제',
+    personaLabel: '11 정의',
+    description: '내면에서는 “말보다 깊은 곳에서 답을 읽는 사람”의 성향이 중심을 이루고, 사람들에게는 “감정보다 기준을 세우고 균형 있게 판단하는 사람”의 모습이 먼저 보일 수 있어요.'
+  });
+});
+
+test('getDetailedProfile selects the birth card V2 details', () => {
+  const card = tarot.getCardContent(8);
+
+  assert.deepEqual(tarot.getDetailedProfile(card), {
+    strength: card.strengthDescription,
+    shadow: card.shadowDescription,
+    relationship: card.relationshipDescription,
+    workStyle: card.workStyleDescription,
+    growthPoint: card.growthPointDescription
+  });
+});
+
+test('getDetailedProfile falls back to the common profile for missing fields', () => {
+  assert.deepEqual(tarot.getDetailedProfile({ profileDescription: 'fallback' }), {
+    strength: 'fallback',
+    shadow: 'fallback',
+    relationship: 'fallback',
+    workStyle: 'fallback',
+    growthPoint: 'fallback'
+  });
+});
+
 test('getShareText includes the configured production URL', () => {
   assert.equal(typeof tarot.getShareText, 'function');
 

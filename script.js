@@ -187,6 +187,47 @@ function getRoleDescription(cardContent, role) {
   return cardContent.roleDescriptions?.[role] || cardContent.profileDescription || '';
 }
 
+function formatProfileCardLabel(cardContent) {
+  return `${cardContent.displayNumber} ${cardContent.name}`;
+}
+
+function buildProfileRelationship(profile) {
+  const birthContent = profile.birthCard;
+  const personaContent = profile.personaCard;
+  const birthLabel = formatProfileCardLabel(birthContent);
+  const personaLabel = formatProfileCardLabel(personaContent);
+
+  if (!profile.hasDistinctPersona) {
+    return {
+      variant: 'integrated',
+      badge: '같은 카드, 같은 방향',
+      birthLabel,
+      personaLabel,
+      description: `내면과 사회적 인상 모두 “${birthContent.tagline}”이라는 같은 방향으로 이어져요.`
+    };
+  }
+
+  return {
+    variant: 'distinct',
+    badge: '내 중심이 다른 모습으로 표현돼요',
+    birthLabel,
+    personaLabel,
+    description: `내면에서는 “${birthContent.tagline}”의 성향이 중심을 이루고, 사람들에게는 “${personaContent.tagline}”의 모습이 먼저 보일 수 있어요.`
+  };
+}
+
+function getDetailedProfile(cardContent) {
+  const fallback = cardContent?.profileDescription || '';
+
+  return {
+    strength: cardContent?.strengthDescription || fallback,
+    shadow: cardContent?.shadowDescription || fallback,
+    relationship: cardContent?.relationshipDescription || fallback,
+    workStyle: cardContent?.workStyleDescription || fallback,
+    growthPoint: cardContent?.growthPointDescription || fallback
+  };
+}
+
 function getCardImagePath(cardNumber) {
   return CARD_IMAGE_FILES[normalizeCardNumber(cardNumber)] || '';
 }
@@ -679,6 +720,8 @@ const exported = {
   getYearFlow,
   getCardContent,
   getRoleDescription,
+  buildProfileRelationship,
+  getDetailedProfile,
   getCardImagePath,
   getShareUrl,
   getShareText,
