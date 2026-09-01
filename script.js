@@ -452,6 +452,16 @@ function renderDetailedProfileSection(profile) {
   setElementText('res-detail-growth', details.growthPoint);
 }
 
+function resetProfileDetails() {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  document.querySelectorAll('.profile-detail').forEach((detail) => {
+    detail.open = false;
+  });
+}
+
 function renderYearFlowSection(profile) {
   const keys = ['prev', 'curr', 'next'];
 
@@ -618,6 +628,7 @@ function resetView() {
   }
 
   setShareFeedback('');
+  resetProfileDetails();
   showScreen('landing');
 
   if (swiper) {
@@ -682,6 +693,7 @@ function handleStart() {
 
   window.setTimeout(() => {
     currentProfile = buildTarotProfile(parsedDate);
+    resetProfileDetails();
     renderBirthCardSection(currentProfile);
     renderPersonaCardSection(currentProfile);
     renderDetailedProfileSection(currentProfile);
@@ -774,6 +786,7 @@ const exported = {
   renderBirthCardSection,
   renderPersonaCardSection,
   renderDetailedProfileSection,
+  resetProfileDetails,
   renderYearFlowSection
 };
 

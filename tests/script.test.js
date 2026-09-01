@@ -259,6 +259,20 @@ test('getDetailedProfile falls back to the common profile for missing fields', (
   });
 });
 
+test('resetProfileDetails closes every open profile detail', () => {
+  const originalQuerySelectorAll = global.document.querySelectorAll;
+  const details = [{ open: true }, { open: true }, { open: false }];
+  global.document.querySelectorAll = (selector) =>
+    selector === '.profile-detail' ? details : originalQuerySelectorAll(selector);
+
+  try {
+    tarot.resetProfileDetails();
+    assert.deepEqual(details.map((detail) => detail.open), [false, false, false]);
+  } finally {
+    global.document.querySelectorAll = originalQuerySelectorAll;
+  }
+});
+
 test('getShareText includes the configured production URL', () => {
   assert.equal(typeof tarot.getShareText, 'function');
 
