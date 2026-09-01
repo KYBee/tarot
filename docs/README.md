@@ -22,7 +22,7 @@
 - [requirements.md](./requirements.md)
   기능 요구사항, 입력/출력, 예외 처리, 비기능 요구사항을 정리한다.
 - [calculation-rules.md](./calculation-rules.md)
-  탄생카드, 페르소나 카드, 날개 카드, 연도 카드 계산과 표기 정책을 정리한다.
+  탄생카드, 페르소나 카드, 통합형 표시, 연도 카드 계산과 표기 정책을 정리한다.
 - [content-model.md](./content-model.md)
   카드 콘텐츠 데이터 구조와 렌더링 연결 방식을 정의한다.
 - [content-writing-guide.md](./content-writing-guide.md)
@@ -44,4 +44,3 @@
 - 카드 텍스트 구조는 [content-model.md](./content-model.md)와 [content-writing-guide.md](./content-writing-guide.md)를 함께 본다.
 - UI 문구와 섹션 순서는 [ui-ux-spec.md](./ui-ux-spec.md)를 우선한다.
 - 실제 구현 단계의 파일 분리와 리팩터링 범위는 [technical-plan.md](./technical-plan.md)를 따른다.
-
