@@ -129,15 +129,6 @@ function getPersonaCard(reductionResult) {
   return reductionResult.personaNumber;
 }
 
-function getWingCard(birthNumber) {
-  // TODO: 문서 기준 고정 정책. 이후 서비스 정의 변경 시 docs/calculation-rules.md와 같이 수정.
-  if (birthNumber <= 1) {
-    return 0;
-  }
-
-  return birthNumber - 1;
-}
-
 function getYearCard(month, day, year) {
   const total = month + day + year;
   const steps = [total];
@@ -234,8 +225,8 @@ function buildTarotProfile(parsedDate, today = new Date()) {
   const birthReduction = reduceToBirthCard(parsedDate.year, parsedDate.month, parsedDate.day);
   const birthCard = getCardContent(birthReduction.birthNumber);
   const personaNumber = getPersonaCard(birthReduction);
-  const wingNumber = getWingCard(birthReduction.birthNumber);
-  const wingCard = getCardContent(wingNumber);
+  const hasDistinctPersona = personaNumber !== null;
+  const personaCard = hasDistinctPersona ? getCardContent(personaNumber) : birthCard;
   const currentYear = today.getFullYear();
 
   const years = [currentYear - 1, currentYear, currentYear + 1].map((year) => {
@@ -254,8 +245,8 @@ function buildTarotProfile(parsedDate, today = new Date()) {
     birthReduction,
     birthCard,
     personaNumber,
-    wingNumber,
-    wingCard,
+    personaCard,
+    hasDistinctPersona,
     years
   };
 }
@@ -705,7 +696,6 @@ const exported = {
   sumDigits,
   reduceToBirthCard,
   getPersonaCard,
-  getWingCard,
   getYearCard,
   getYearFlow,
   getCardContent,

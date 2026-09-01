@@ -81,10 +81,30 @@ test('reduceToBirthCard captures first two-digit persona card', () => {
   assert.deepEqual(result.steps, [2036, 11, 2]);
 });
 
-test('getWingCard wraps 1 to 0', () => {
-  assert.equal(typeof tarot.getWingCard, 'function');
-  assert.equal(tarot.getWingCard(1), 0);
-  assert.equal(tarot.getWingCard(8), 7);
+test('buildTarotProfile reuses the birth card for an integrated persona result', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+
+  assert.equal(profile.personaNumber, null);
+  assert.equal(profile.hasDistinctPersona, false);
+  assert.equal(profile.personaCard, profile.birthCard);
+  assert.equal(profile.personaCard.canonicalNumber, 8);
+  assert.equal('wingNumber' in profile, false);
+  assert.equal('wingCard' in profile, false);
+});
+
+test('buildTarotProfile keeps a distinct two-digit persona card', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+
+  assert.equal(profile.personaNumber, 11);
+  assert.equal(profile.hasDistinctPersona, true);
+  assert.equal(profile.personaCard.canonicalNumber, 11);
+  assert.notEqual(profile.personaCard, profile.birthCard);
 });
 
 test('getYearCard reduces to 22 or below for yearly flow', () => {
