@@ -22,7 +22,7 @@
 - [requirements.md](./requirements.md)
   기능 요구사항, 입력/출력, 예외 처리, 비기능 요구사항을 정리한다.
 - [calculation-rules.md](./calculation-rules.md)
-  탄생카드, 페르소나 카드, 통합형 표시, 연도 카드 계산과 표기 정책을 정리한다.
+  탄생카드, 선택적 페르소나 카드, 연도 카드 계산과 표기 정책을 정리한다.
 - [content-model.md](./content-model.md)
   카드 콘텐츠 데이터 구조와 렌더링 연결 방식을 정의한다.
 - [content-writing-guide.md](./content-writing-guide.md)

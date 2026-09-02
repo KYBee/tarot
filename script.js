@@ -192,27 +192,28 @@ function formatProfileCardLabel(cardContent) {
 }
 
 function buildProfileRelationship(profile) {
-  const birthContent = profile.birthCard;
-  const personaContent = profile.personaCard;
-  const birthLabel = formatProfileCardLabel(birthContent);
-  const personaLabel = formatProfileCardLabel(personaContent);
-
-  if (!profile.hasDistinctPersona) {
-    return {
-      variant: 'integrated',
-      badge: '같은 카드, 같은 방향',
-      birthLabel,
-      personaLabel,
-      description: `내면과 사회적 인상 모두 “${birthContent.tagline}”이라는 같은 방향으로 이어져요.`
-    };
+  if (!profile.hasPersona || !profile.personaCard) {
+    return null;
   }
 
+  const birthContent = profile.birthCard;
+  const personaContent = profile.personaCard;
+
   return {
-    variant: 'distinct',
     badge: '내 중심이 다른 모습으로 표현돼요',
-    birthLabel,
-    personaLabel,
+    birthLabel: formatProfileCardLabel(birthContent),
+    personaLabel: formatProfileCardLabel(personaContent),
     description: `내면에서는 “${birthContent.tagline}”의 성향이 중심을 이루고, 사람들에게는 “${personaContent.tagline}”의 모습이 먼저 보일 수 있어요.`
+  };
+}
+
+function getProfileResultVisibility(profile) {
+  const showPersona = Boolean(profile?.hasPersona && profile.personaCard);
+
+  return {
+    showPersona,
+    showNavigation: showPersona,
+    showSwipeHint: showPersona
   };
 }
 
@@ -272,8 +273,8 @@ function buildTarotProfile(parsedDate, today = new Date()) {
   const birthReduction = reduceToBirthCard(parsedDate.year, parsedDate.month, parsedDate.day);
   const birthCard = getCardContent(birthReduction.birthNumber);
   const personaNumber = getPersonaCard(birthReduction);
-  const hasDistinctPersona = personaNumber !== null;
-  const personaCard = hasDistinctPersona ? getCardContent(personaNumber) : birthCard;
+  const hasPersona = personaNumber !== null;
+  const personaCard = hasPersona ? getCardContent(personaNumber) : null;
   const currentYear = today.getFullYear();
 
   const years = [currentYear - 1, currentYear, currentYear + 1].map((year) => {
@@ -293,7 +294,7 @@ function buildTarotProfile(parsedDate, today = new Date()) {
     birthCard,
     personaNumber,
     personaCard,
-    hasDistinctPersona,
+    hasPersona,
     years
   };
 }
@@ -313,13 +314,13 @@ function showScreen(screenId) {
   }
 }
 
-function updateProfileSteps(index) {
+function updateProfileSteps(index, enabled = true) {
   if (typeof document === 'undefined') {
     return;
   }
 
   document.querySelectorAll('.profile-step').forEach((step, stepIndex) => {
-    const isActive = stepIndex === index;
+    const isActive = enabled && stepIndex === index;
     step.classList.toggle('active', isActive);
 
     if (isActive) {
@@ -329,7 +330,26 @@ function updateProfileSteps(index) {
     }
   });
 
-  document.getElementById('item-persona')?.classList.toggle('relationship-visible', index === 1);
+  document
+    .getElementById('item-persona')
+    ?.classList.toggle('relationship-visible', enabled && index === 1);
+}
+
+function setElementHidden(element, hidden) {
+  if (element) {
+    element.hidden = hidden;
+  }
+}
+
+function renderProfileResultVisibility(profile) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const visibility = getProfileResultVisibility(profile);
+  setElementHidden(document.getElementById('item-persona'), !visibility.showPersona);
+  setElementHidden(document.querySelector('.profile-steps'), !visibility.showNavigation);
+  setElementHidden(document.querySelector('.swipe-hint'), !visibility.showSwipeHint);
 }
 
 function setElementText(id, value) {
@@ -414,32 +434,22 @@ function renderBirthCardSection(profile) {
 }
 
 function renderPersonaCardSection(profile) {
-  const isIntegrated = !profile.hasDistinctPersona;
-  const relationship = buildProfileRelationship(profile);
-  const trace = isIntegrated
-    ? APP_COPY.personaIntegrated?.trace ||
-      '중간 축약 과정에서 별도의 두 자리 카드가 나오지 않아 탄생카드와 같은 카드로 읽습니다.'
-    : `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`;
+  if (!profile.hasPersona || !profile.personaCard) {
+    return;
+  }
 
-  const relationshipElement = document.getElementById('res-profile-relationship');
+  const relationship = buildProfileRelationship(profile);
+  const trace = `탄생카드 축약 과정에서 ${formatReducedValue(profile.birthReduction.personaRaw)}이 나타나 페르소나 카드로 읽습니다.`;
+
   setElementText('res-relationship-badge', relationship.badge);
   setElementText('res-relationship-birth', relationship.birthLabel);
   setElementText('res-relationship-persona', relationship.personaLabel);
   setElementText('res-relationship-description', relationship.description);
 
-  if (relationshipElement) {
-    relationshipElement.dataset.variant = relationship.variant;
-  }
-
   renderCardSection('res-persona', APP_COPY.persona, profile.personaCard, {
     role: 'persona',
     trace
   });
-
-  const item = document.getElementById('item-persona');
-  if (item) {
-    item.classList.toggle('is-integrated', isIntegrated);
-  }
 }
 
 function renderDetailedProfileSection(profile) {
@@ -496,11 +506,18 @@ function getShareText(profile = currentProfile) {
   const birth = profile.birthCard;
   const currentYearFlow = profile.years[1];
   const shareUrl = getShareUrl();
+  const profileLines = [`탄생카드: ${birth.displayNumber} ${birth.name}`];
+
+  if (profile.hasPersona && profile.personaCard) {
+    profileLines.push(
+      `페르소나카드: ${profile.personaCard.displayNumber} ${profile.personaCard.name}`
+    );
+  }
 
   return [
     '너의 타로는? | 나의 타로 프로필',
     '',
-    `탄생카드: ${birth.displayNumber} ${birth.name}`,
+    ...profileLines,
     `기본 의미: ${birth.keywords.join(', ')}`,
     `올해 흐름: ${currentYearFlow.cardContent.displayNumber} ${currentYearFlow.cardContent.name}`,
     '',
@@ -694,6 +711,7 @@ function handleStart() {
   window.setTimeout(() => {
     currentProfile = buildTarotProfile(parsedDate);
     resetProfileDetails();
+    renderProfileResultVisibility(currentProfile);
     renderBirthCardSection(currentProfile);
     renderPersonaCardSection(currentProfile);
     renderDetailedProfileSection(currentProfile);
@@ -704,7 +722,7 @@ function handleStart() {
       swiper.scrollLeft = 0;
     }
 
-    updateProfileSteps(0);
+    updateProfileSteps(0, currentProfile.hasPersona);
     setShareFeedback('');
     showScreen('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -772,6 +790,7 @@ const exported = {
   getCardContent,
   getRoleDescription,
   buildProfileRelationship,
+  getProfileResultVisibility,
   getDetailedProfile,
   getCardImagePath,
   getShareUrl,
@@ -785,6 +804,7 @@ const exported = {
   resetView,
   renderBirthCardSection,
   renderPersonaCardSection,
+  renderProfileResultVisibility,
   renderDetailedProfileSection,
   resetProfileDetails,
   renderYearFlowSection

@@ -413,10 +413,6 @@
       title: '페르소나 카드',
       definition: '페르소나 카드는 사회 속에서 드러나는 나의 얼굴을 의미합니다.'
     },
-    personaIntegrated: {
-      label: '탄생·페르소나 통합형',
-      trace: '중간 축약 과정에서 별도의 두 자리 카드가 나오지 않아 탄생카드와 같은 카드로 읽습니다.'
-    },
     messages: {
       invalidDate: '생년월일을 YYYY.MM.DD 형식의 실제 날짜로 입력해주세요.',
       futureDate: '미래 날짜는 입력할 수 없어요.',

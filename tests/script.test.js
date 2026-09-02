@@ -9,6 +9,7 @@ const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8'
 
 function createMockElement() {
   return {
+    hidden: false,
     value: '',
     textContent: '',
     innerHTML: '',
@@ -87,29 +88,29 @@ test('reduceToBirthCard captures first two-digit persona card', () => {
   assert.deepEqual(result.steps, [2036, 11, 2]);
 });
 
-test('buildTarotProfile reuses the birth card for an integrated persona result', () => {
+test('buildTarotProfile leaves persona empty when no two-digit card appears', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1997, month: 10, day: 17 },
     new Date('2026-09-01T00:00:00+09:00')
   );
 
   assert.equal(profile.personaNumber, null);
-  assert.equal(profile.hasDistinctPersona, false);
-  assert.equal(profile.personaCard, profile.birthCard);
-  assert.equal(profile.personaCard.canonicalNumber, 8);
+  assert.equal(profile.personaCard, null);
+  assert.equal(profile.hasPersona, false);
+  assert.equal('hasDistinctPersona' in profile, false);
   assert.equal('wingNumber' in profile, false);
   assert.equal('wingCard' in profile, false);
 });
 
-test('buildTarotProfile keeps a distinct two-digit persona card', () => {
+test('buildTarotProfile keeps a two-digit persona card when one appears', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1993, month: 12, day: 31 },
     new Date('2026-09-01T00:00:00+09:00')
   );
 
   assert.equal(profile.personaNumber, 11);
-  assert.equal(profile.hasDistinctPersona, true);
   assert.equal(profile.personaCard.canonicalNumber, 11);
+  assert.equal(profile.hasPersona, true);
   assert.notEqual(profile.personaCard, profile.birthCard);
 });
 
@@ -185,10 +186,16 @@ test('rendering source connects relationship, details, and profile steps', () =>
   assert.match(scriptSource, /res-relationship-description/);
   assert.match(scriptSource, /res-detail-growth/);
   assert.match(scriptSource, /querySelectorAll\('\.profile-step'\)/);
+  assert.match(scriptSource, /renderProfileResultVisibility\(currentProfile\)/);
+  assert.match(scriptSource, /element\.hidden = hidden/);
+  assert.match(scriptSource, /if \(!profile\.hasPersona \|\| !profile\.personaCard\)/);
+  assert.match(scriptSource, /updateProfileSteps\(0, currentProfile\.hasPersona\)/);
+  assert.match(scriptSource, /const isActive = enabled && stepIndex === index/);
   assert.doesNotMatch(scriptSource, /querySelectorAll\('\.dot'\)/);
 });
 
 test('profile relationship styles include responsive and reduced-motion states', () => {
+  assert.match(styleCss, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important;/s);
   assert.match(styleCss, /\.profile-relationship/);
   assert.match(styleCss, /\.profile-steps/);
   assert.match(styleCss, /\.profile-detail/);
@@ -207,34 +214,92 @@ test('getRoleDescription selects role copy and falls back to the common profile'
   );
 });
 
-test('buildProfileRelationship explains an integrated profile as one direction', () => {
+test('buildProfileRelationship returns null when persona is absent', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1997, month: 10, day: 17 },
     new Date('2026-04-12T00:00:00+09:00')
   );
 
-  assert.deepEqual(tarot.buildProfileRelationship(profile), {
-    variant: 'integrated',
-    badge: '같은 카드, 같은 방향',
-    birthLabel: '8 힘',
-    personaLabel: '8 힘',
-    description: '내면과 사회적 인상 모두 “거친 힘을 억누르지 않고 부드럽게 다루는 사람”이라는 같은 방향으로 이어져요.'
-  });
+  assert.equal(tarot.buildProfileRelationship(profile), null);
 });
 
-test('buildProfileRelationship explains a distinct outward expression', () => {
+test('buildProfileRelationship explains a persona card outward expression', () => {
   const profile = tarot.buildTarotProfile(
     { year: 1993, month: 12, day: 31 },
     new Date('2026-04-12T00:00:00+09:00')
   );
 
   assert.deepEqual(tarot.buildProfileRelationship(profile), {
-    variant: 'distinct',
     badge: '내 중심이 다른 모습으로 표현돼요',
     birthLabel: '2 여사제',
     personaLabel: '11 정의',
     description: '내면에서는 “말보다 깊은 곳에서 답을 읽는 사람”의 성향이 중심을 이루고, 사람들에게는 “감정보다 기준을 세우고 균형 있게 판단하는 사람”의 모습이 먼저 보일 수 있어요.'
   });
+});
+
+test('getProfileResultVisibility hides persona navigation when persona is absent', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.getProfileResultVisibility(profile), {
+    showPersona: false,
+    showNavigation: false,
+    showSwipeHint: false
+  });
+});
+
+test('getProfileResultVisibility shows persona navigation when persona exists', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-04-12T00:00:00+09:00')
+  );
+
+  assert.deepEqual(tarot.getProfileResultVisibility(profile), {
+    showPersona: true,
+    showNavigation: true,
+    showSwipeHint: true
+  });
+});
+
+test('renderProfileResultVisibility toggles persona, navigation, and hint together', () => {
+  const personaSlide = createMockElement();
+  const navigation = createMockElement();
+  const swipeHint = createMockElement();
+  const originalGetElementById = global.document.getElementById;
+  const originalQuerySelector = global.document.querySelector;
+
+  global.document.getElementById = (id) =>
+    id === 'item-persona' ? personaSlide : createMockElement();
+  global.document.querySelector = (selector) => {
+    if (selector === '.profile-steps') return navigation;
+    if (selector === '.swipe-hint') return swipeHint;
+    return null;
+  };
+
+  try {
+    const singleCardProfile = tarot.buildTarotProfile(
+      { year: 1997, month: 10, day: 17 },
+      new Date('2026-04-12T00:00:00+09:00')
+    );
+    tarot.renderProfileResultVisibility(singleCardProfile);
+    assert.equal(personaSlide.hidden, true);
+    assert.equal(navigation.hidden, true);
+    assert.equal(swipeHint.hidden, true);
+
+    const twoCardProfile = tarot.buildTarotProfile(
+      { year: 1993, month: 12, day: 31 },
+      new Date('2026-04-12T00:00:00+09:00')
+    );
+    tarot.renderProfileResultVisibility(twoCardProfile);
+    assert.equal(personaSlide.hidden, false);
+    assert.equal(navigation.hidden, false);
+    assert.equal(swipeHint.hidden, false);
+  } finally {
+    global.document.getElementById = originalGetElementById;
+    global.document.querySelector = originalQuerySelector;
+  }
 });
 
 test('getDetailedProfile selects the birth card V2 details', () => {
@@ -288,6 +353,39 @@ test('getShareText includes the configured production URL', () => {
   const shareText = tarot.getShareText(profile);
 
   assert.match(shareText, /https:\/\/tarot-zeta-two\.vercel\.app\/?/);
+});
+
+test('getShareText omits persona when the profile has no persona card', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+  const shareText = tarot.getShareText(profile);
+
+  assert.match(shareText, /탄생카드: 8 힘/);
+  assert.doesNotMatch(shareText, /페르소나카드:/);
+});
+
+test('getShareText includes persona when the profile has a persona card', () => {
+  const profile = tarot.buildTarotProfile(
+    { year: 1993, month: 12, day: 31 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+  const shareText = tarot.getShareText(profile);
+
+  assert.match(shareText, /탄생카드: 2 여사제/);
+  assert.match(shareText, /페르소나카드: 11 정의/);
+});
+
+test('optional persona implementation has no integrated-state remnants', () => {
+  const contentSource = fs.readFileSync(
+    path.join(__dirname, '..', 'data', 'card-content.js'),
+    'utf8'
+  );
+
+  assert.doesNotMatch(scriptSource, /hasDistinctPersona|personaIntegrated|is-integrated/);
+  assert.doesNotMatch(contentSource, /personaIntegrated|탄생·페르소나 통합형/);
+  assert.doesNotMatch(styleCss, /\.is-integrated/);
 });
 
 test('buildKakaoSharePayload creates a Kakao share payload with runtime URL', () => {
