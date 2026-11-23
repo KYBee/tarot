@@ -4,7 +4,7 @@
 
 ## 1. 기본 방향
 
-- 현재 정적 웹 구조인 [`index.html`](/Users/kybee/dev/projects/tarot/index.html), [`script.js`](/Users/kybee/dev/projects/tarot/script.js), [`style.css`](/Users/kybee/dev/projects/tarot/style.css)를 유지한다.
+- 현재 정적 웹 구조인 [`index.html`](../index.html), [`script.js`](../script.js), [`style.css`](../style.css)를 유지한다.
 - 다만 콘텐츠 양이 많기 때문에 데이터는 분리 가능한 형태로 설계한다.
 - 구현은 "계산 로직 정리 -> 콘텐츠 데이터 연결 -> UI 개선 -> 공유 연동" 순으로 진행한다.
 
