@@ -407,3 +407,77 @@ test('buildKakaoSharePayload creates a Kakao share payload with runtime URL', ()
   assert.equal(payload.link.webUrl, 'https://tarot-zeta-two.vercel.app/');
   assert.match(payload.text, /탄생카드: 8 힘/);
 });
+
+async function withMockNavigator(mockNavigator, run) {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', {
+    value: mockNavigator,
+    configurable: true,
+    writable: true
+  });
+
+  try {
+    await run();
+  } finally {
+    if (original) {
+      Object.defineProperty(globalThis, 'navigator', original);
+    } else {
+      delete globalThis.navigator;
+    }
+  }
+}
+
+function createShareTestProfile() {
+  return tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+}
+
+test('shareProfile does not copy text when the user cancels the share sheet', async () => {
+  let copiedText = null;
+
+  await withMockNavigator(
+    {
+      share: async () => {
+        const error = new Error('Share canceled');
+        error.name = 'AbortError';
+        throw error;
+      },
+      clipboard: {
+        writeText: async (text) => {
+          copiedText = text;
+        }
+      }
+    },
+    async () => {
+      const result = await tarot.shareProfile(createShareTestProfile());
+      assert.equal(result, 'cancelled');
+    }
+  );
+
+  assert.equal(copiedText, null);
+});
+
+test('shareProfile falls back to clipboard when the share sheet fails', async () => {
+  let copiedText = null;
+
+  await withMockNavigator(
+    {
+      share: async () => {
+        throw new Error('Share unavailable');
+      },
+      clipboard: {
+        writeText: async (text) => {
+          copiedText = text;
+        }
+      }
+    },
+    async () => {
+      const result = await tarot.shareProfile(createShareTestProfile());
+      assert.equal(result, 'copied');
+    }
+  );
+
+  assert.match(copiedText, /탄생카드: 8 힘/);
+});
