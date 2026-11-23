@@ -1,6 +1,6 @@
 # docs 안내
 
-`너의 타로는?`의 기획, 계산 규칙, 콘텐츠 구조, UI/UX, 기술 방향을 먼저 고정하기 위한 문서 모음이다. 이 디렉터리의 문서는 현재 mock UI인 [`index.html`](/Users/kybee/dev/projects/tarot/index.html), [`script.js`](/Users/kybee/dev/projects/tarot/script.js), [`style.css`](/Users/kybee/dev/projects/tarot/style.css)를 유지하면서 점진적으로 개선하는 것을 전제로 한다.
+`너의 타로는?`의 기획, 계산 규칙, 콘텐츠 구조, UI/UX, 기술 방향을 먼저 고정하기 위한 문서 모음이다. 이 디렉터리의 문서는 현재 mock UI인 [`index.html`](../index.html), [`script.js`](../script.js), [`style.css`](../style.css)를 유지하면서 점진적으로 개선하는 것을 전제로 한다.
 
 ## 권장 읽기 순서
 

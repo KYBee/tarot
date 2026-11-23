@@ -580,21 +580,21 @@ function setShareFeedback(message) {
   setElementText('share-feedback', message);
 }
 
-async function handleShare() {
-  if (!currentProfile) {
+async function shareProfile(profile) {
+  if (!profile) {
     setShareFeedback(APP_COPY.messages?.shareUnavailable || '공유할 결과가 아직 없어요.');
-    return;
+    return 'unavailable';
   }
 
-  const shareText = getShareText();
+  const shareText = getShareText(profile);
   const shareUrl = getShareUrl();
-  const kakaoPayload = buildKakaoSharePayload();
+  const kakaoPayload = buildKakaoSharePayload(profile);
 
   if (kakaoPayload && initKakaoShare() && typeof window !== 'undefined' && window.Kakao?.Share?.sendDefault) {
     try {
       window.Kakao.Share.sendDefault(kakaoPayload);
       setShareFeedback(KAKAO_SDK_MESSAGE);
-      return;
+      return 'kakao';
     } catch (error) {
       // SDK가 있어도 도메인/앱 설정 문제 시 기존 fallback으로 내려간다.
     }
@@ -608,21 +608,31 @@ async function handleShare() {
         url: shareUrl
       });
       setShareFeedback('공유 시트를 열었어요.');
-      return;
+      return 'web-share';
     } catch (error) {
-      // 사용자가 취소한 경우에도 fallback을 허용한다.
+      // 사용자가 공유 시트를 닫은 경우에는 복사로 넘어가지 않는다.
+      if (error?.name === 'AbortError') {
+        setShareFeedback('');
+        return 'cancelled';
+      }
     }
   }
 
   const copied = await copyShareText(shareText);
   if (copied) {
     setShareFeedback(APP_COPY.messages?.shareFallback || '결과 텍스트를 복사했어요.');
-    return;
+    return 'copied';
   }
 
   if (typeof window !== 'undefined' && typeof window.alert === 'function') {
     window.alert(`${APP_COPY.messages?.shareFallback || '공유 텍스트를 준비했어요.'}\n\n${shareText}`);
   }
+
+  return 'alert';
+}
+
+function handleShare() {
+  return shareProfile(currentProfile);
 }
 
 function resetView() {
@@ -800,6 +810,7 @@ const exported = {
   formatBirthTrace,
   formatYearTrace,
   buildTarotProfile,
+  shareProfile,
   handleShare,
   resetView,
   renderBirthCardSection,
