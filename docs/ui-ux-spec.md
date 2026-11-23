@@ -6,9 +6,9 @@
 
 기준 파일:
 
-- [`index.html`](/Users/kybee/dev/projects/tarot/index.html)
-- [`style.css`](/Users/kybee/dev/projects/tarot/style.css)
-- [`script.js`](/Users/kybee/dev/projects/tarot/script.js)
+- [`index.html`](../index.html)
+- [`style.css`](../style.css)
+- [`script.js`](../script.js)
 
 현재 mock은 이미 아래 흐름을 갖고 있다.
 
@@ -30,7 +30,7 @@
 - 카드별 정보 위계가 아직 얕다.
 - 카드 타입 설명이 누락되어 있다.
 - 페르소나 카드가 계산되지 않은 결과는 탄생카드 한 장에 집중할 수 있어야 한다.
-- 로딩 화면이 현재는 고정 2초 지연으로 동작한다.
+- 로딩 화면은 고정 2초 지연을 제거하고 약 350ms의 짧은 전환으로 바꿨다.
 - 배경/카드 자산 사용 정책이 아직 정리되지 않았다.
 
 ## 2. 화면별 섹션 설명
@@ -171,7 +171,7 @@ UX 원칙:
 
 - 필요는 하지만 필수는 아니다.
 - 계산이 즉시 끝나는 구조이므로 긴 로딩은 UX 저하 요소다.
-- 초기 버전은 짧은 전환 애니메이션으로 유지하되, 고정 2초 딜레이는 제거한다.
+- 짧은 전환 애니메이션(현재 약 350ms)만 유지한다. 고정 2초 딜레이는 제거했다.
 
 ## 11. 스와이프 / 페이지네이션 동작 정의
 

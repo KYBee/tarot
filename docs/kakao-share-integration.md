@@ -8,6 +8,16 @@
 - 초기 문서 단계에서는 버튼 UI와 연동 정책을 먼저 고정한다.
 - 실제 연동은 Kakao JavaScript SDK 기준으로 진행한다.
 
+## 현재 구현 상태
+
+- `index.html`에서 Kakao JavaScript SDK 2.8.0을 로드한다.
+- `config.js`의 `APP_CONFIG.kakaoJavaScriptKey`가 있으면 `Kakao.init()`으로 초기화한다. 이미 초기화돼 있으면 다시 하지 않는다.
+- 공유 버튼은 `Kakao.Share.sendDefault()`로 텍스트형 payload를 보낸다.
+- 키가 없거나 SDK 호출이 실패하면 Web Share API -> 클립보드 복사 -> alert 순서로 fallback한다.
+- 사용자가 Web Share 시트를 취소(`AbortError`)하면 복사로 넘어가지 않고 그대로 끝낸다.
+- 운영 환경에서 실제 카카오 공유가 동작하는지는 Vercel 환경변수와 Kakao Developers 도메인 설정 후 확인해야 한다.
+- 결과별 고정 URL은 아직 없다. 공유 링크는 항상 `shareBaseUrl`이다.
+
 ## 2. 적용 방식
 
 권장 방식:

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-이 문서는 `/Users/kybee/dev/projects/tarot` 아래 전체에 적용된다.
+이 문서는 이 저장소 루트 아래 전체에 적용된다.
 
 ## 프로젝트 정체성
 
@@ -39,7 +39,8 @@
 - 탄생카드 / 페르소나 카드 / 작년·올해·내년 연도 카드가 렌더링된다.
 - 별도 페르소나 카드가 나오지 않을 때는 탄생카드 결과만 보여주고 페르소나 UI는 숨긴다.
 - 카드 이미지 세트는 `img/` 디렉터리에 연결되어 있다.
-- 카카오 공유는 아직 실제 SDK 미연동이며 fallback만 구현되어 있다.
+- 카카오 공유는 Kakao SDK 로드·초기화·`Kakao.Share.sendDefault()` 호출 코드까지 구현되어 있다. 실제 동작 여부는 배포 환경의 `KAKAO_JS_KEY`와 Kakao Developers 도메인 등록에 달려 있다.
+- 키가 없거나 SDK 호출이 실패하면 Web Share API -> 클립보드 복사 -> alert 순서로 fallback한다. 사용자가 공유 시트를 취소하면 복사로 넘어가지 않는다.
 
 즉, 다음 작업은 "처음부터 만들기"가 아니라 "문서 기준 유지 + 기존 MVP 점진 개선"이어야 한다.
 
@@ -142,9 +143,9 @@
 
 ## 카카오 공유 규칙
 
-- 현재는 fallback만 구현돼 있다.
-- 실제 Kakao SDK 연동은 아직 TODO다.
-- 연동 전에는 기존 fallback 구조를 망가뜨리지 않는다.
+- SDK 연동 코드는 구현돼 있고, 키는 Vercel 빌드 시 `scripts/generate-config.js`가 만드는 `config.js`로 주입된다.
+- 운영 환경에서 실제 카카오 공유가 동작하는지는 키/도메인 설정 후 별도로 확인해야 한다.
+- SDK 경로를 수정해도 기존 fallback 순서(Web Share -> 클립보드 -> alert)는 망가뜨리지 않는다.
 - 실제 키/도메인 연동 시 `docs/kakao-share-integration.md`를 먼저 읽는다.
 
 ## 작업 시 주의사항
@@ -162,7 +163,7 @@
 작업 후 최소한 아래는 다시 돌린다.
 
 ```bash
-node --test tests/script.test.js
+node --test tests/script.test.js tests/generate-config.test.js
 node --check script.js
 node --check data/card-content.js
 ```
@@ -174,7 +175,7 @@ node --check data/card-content.js
 
 ## 현재 남아 있는 TODO
 
-- 실제 Kakao JavaScript SDK 연동
+- 운영 환경에서 Kakao 공유 실제 동작 확인 (키/도메인 설정)
 - 공유 payload에 고정 결과 URL을 넣는 구조
 - 추가 회귀 테스트 보강:
   - `22 -> 0/22` 정규화 케이스

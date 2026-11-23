@@ -9,9 +9,9 @@
 
 - 문서화 완료
 - 정적 웹 MVP 구현 완료
-- 입력 -> 계산 -> 결과 카드 -> 연도 흐름 -> 공유 fallback까지 동작
+- 입력 -> 계산 -> 결과 카드 -> 연도 흐름 -> 공유까지 동작
 - 메이저 아르카나 0~21 이미지 세트 반영
-- 카카오 공유는 아직 실제 SDK 연동 전 단계
+- 카카오 공유는 SDK 연동 코드까지 구현됨 (운영 키/도메인 설정 후 실제 동작 확인 필요)
 
 ## 예시 화면
 
@@ -25,7 +25,7 @@
 - 계산된 페르소나가 있을 때만 두 번째 프로필 카드 표시
 - 작년 / 올해 / 내년 연도 카드 계산
 - 그림 속 상징, 상징 해석, 역할별 프로필, 연도 흐름 해석 표시
-- 카카오 공유 fallback
+- 카카오 공유 (실패 시 Web Share API -> 클립보드 복사 fallback)
 
 ## 기술 구성
 
@@ -77,7 +77,7 @@ python3 -m http.server 4175 --bind 127.0.0.1
 ## 검증 명령
 
 ```bash
-node --test tests/script.test.js
+node --test tests/script.test.js tests/generate-config.test.js
 node --check script.js
 node --check data/card-content.js
 ```
@@ -99,7 +99,7 @@ node --check data/card-content.js
 
 ## 남은 작업
 
-- Kakao JavaScript SDK 실제 연동
+- 운영 환경에서 Kakao 공유 실제 동작 확인
 - 결과 공유용 고정 URL 설계
 - 모바일 시각 QA와 추가 polish
 - 계산/렌더링 회귀 테스트 보강
