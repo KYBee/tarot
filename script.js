@@ -56,6 +56,8 @@ const CARD_IMAGE_FILES = {
 let currentProfile = null;
 let currentDailyCard = null;
 let currentDailyDeck = [];
+let selectedDailyCardId = null;
+let selectedDailyCardIndex = null;
 let isDailyPicking = false;
 
 function sumDigits(number) {
@@ -808,11 +810,97 @@ function renderDailyCardSection(card, options = {}) {
 
   if (typeof document !== 'undefined') {
     const badgeEl = document.getElementById('res-daily-num');
+    const stageCard = document.getElementById('daily-card-visual');
+    const readingBox = document.getElementById('daily-reading-box');
     badgeEl?.classList.toggle('is-minor-badge', card.arcana === 'minor');
     setElementHidden(document.getElementById('daily-lock-notice'), !options.isLockedToday);
     setElementHidden(document.getElementById('daily-result-panel'), false);
     setElementHidden(document.getElementById('share-daily'), false);
+
+    if (!options.animateFlip) {
+      stageCard?.classList.remove('is-ceremony-entering');
+      stageCard?.classList.add('is-flipped');
+      readingBox?.classList.remove('is-revealing');
+    }
   }
+}
+
+function updateDailySelectionStatus(index = null) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const statusEl = document.getElementById('daily-selection-status');
+  const confirmBtn = document.getElementById('daily-draw-confirm');
+  const guideEl = document.getElementById('daily-guide');
+
+  if (index === null || index === undefined) {
+    setElementText('daily-selection-status', '78장의 카드가 펼쳐져 있습니다');
+    setElementText('daily-guide', '마음을 가다듬고 끌리는 카드를 터치해 들어올려 보세요.');
+    statusEl?.classList.remove('is-active');
+    setElementHidden(confirmBtn, true);
+    return;
+  }
+
+  const orderLabel = index + 1;
+  setElementText(
+    'daily-selection-status',
+    `78장 중 ${orderLabel}번째 카드 선택됨 · 한 번 더 탭하면 뒤집힙니다`
+  );
+  setElementText(
+    'daily-guide',
+    '이 카드에서 끌림이 느껴진다면 카드를 한 번 더 탭하거나 아래 버튼을 눌러보세요.'
+  );
+  statusEl?.classList.add('is-active');
+  setElementHidden(confirmBtn, false);
+}
+
+function selectDailySpreadCard(cardId, index) {
+  if (isDailyPicking || currentDailyCard) {
+    return null;
+  }
+
+  selectedDailyCardId = cardId;
+  selectedDailyCardIndex = index;
+  updateDailySelectionStatus(index);
+
+  if (typeof document !== 'undefined') {
+    const buttons = document.querySelectorAll('.spread-card');
+    buttons.forEach((button) => {
+      const btnIndex = Number(button.dataset?.cardIndex);
+      const isTarget = button.dataset?.cardId === cardId;
+      button.classList.toggle('is-selected', isTarget);
+      button.classList.toggle('is-neighbor-left', btnIndex === index - 1 || btnIndex === index - 2);
+      button.classList.toggle('is-neighbor-right', btnIndex === index + 1 || btnIndex === index + 2);
+      button.setAttribute('aria-pressed', isTarget ? 'true' : 'false');
+
+      if (isTarget) {
+        button.scrollIntoView?.({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest'
+        });
+      }
+    });
+  }
+
+  return {
+    cardId: selectedDailyCardId,
+    index: selectedDailyCardIndex
+  };
+}
+
+function handleDailyCardTap(cardId, index, button) {
+  if (isDailyPicking || currentDailyCard) {
+    return;
+  }
+
+  if (selectedDailyCardId === cardId) {
+    handleDailyPick(cardId, button);
+    return;
+  }
+
+  selectDailySpreadCard(cardId, index);
 }
 
 function renderDailySpread(deck) {
@@ -836,18 +924,23 @@ function renderDailySpread(deck) {
     button.dataset.cardId = card.id;
     button.dataset.cardIndex = String(index);
     button.setAttribute('aria-label', `78장 중 ${index + 1}번째 카드 고르기`);
+    button.setAttribute('aria-pressed', 'false');
 
     const normalizedOffset = (index - midpoint) / midpoint;
-    const waveY = Math.round(Math.sin(index * 0.45) * 4);
-    const angle = (normalizedOffset * 4).toFixed(2);
-    button.style.setProperty('--fan-y', `${waveY}px`);
+    const arcY = Math.round(Math.pow(normalizedOffset, 2) * 14 + Math.sin(index * 0.45) * 3);
+    const angle = (normalizedOffset * 6).toFixed(2);
+    button.style.setProperty('--fan-y', `${arcY}px`);
     button.style.setProperty('--fan-rot', `${angle}deg`);
+    button.style.setProperty('--card-order', String(index));
 
     const indexLabel = String(index + 1).padStart(2, '0');
     button.innerHTML = [
       '<span class="spread-card-inner">',
       '  <span class="spread-card-back">',
-      '    <span class="spread-card-glyph" aria-hidden="true">✦</span>',
+      '    <span class="spread-card-moon" aria-hidden="true">☾</span>',
+      '    <span class="spread-card-medallion" aria-hidden="true">',
+      '      <span class="spread-card-glyph">✦</span>',
+      '    </span>',
       `    <span class="spread-card-index">${indexLabel}</span>`,
       '  </span>',
       '  <span class="spread-card-front">',
@@ -857,15 +950,43 @@ function renderDailySpread(deck) {
     ].join('');
 
     button.addEventListener('click', () => {
-      handleDailyPick(card.id, button);
+      handleDailyCardTap(card.id, index, button);
     });
 
     spreadContainer.appendChild(button);
   });
 }
 
-function handleDailyPick(cardId, pickedButton) {
+function reshuffleDailySpread() {
   if (isDailyPicking || currentDailyCard) {
+    return;
+  }
+
+  selectedDailyCardId = null;
+  selectedDailyCardIndex = null;
+  updateDailySelectionStatus(null);
+
+  const spreadTrack = typeof document !== 'undefined' ? document.getElementById('daily-spread') : null;
+  spreadTrack?.classList.add('is-shuffling');
+
+  const finishShuffle = () => {
+    currentDailyDeck = shuffleDeck(buildDeck());
+    renderDailySpread(currentDailyDeck);
+    spreadTrack?.classList.remove('is-shuffling');
+    if (spreadTrack) {
+      spreadTrack.scrollLeft = Math.max(0, (spreadTrack.scrollWidth - spreadTrack.clientWidth) / 3);
+    }
+  };
+
+  if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
+    window.setTimeout(finishShuffle, 240);
+  } else {
+    finishShuffle();
+  }
+}
+
+function handleDailyPick(cardId = selectedDailyCardId, pickedButton = null) {
+  if (isDailyPicking || currentDailyCard || !cardId) {
     return;
   }
 
@@ -881,6 +1002,7 @@ function handleDailyPick(cardId, pickedButton) {
   if (typeof document !== 'undefined') {
     document.querySelectorAll('.spread-card').forEach((button) => {
       if (button === pickedButton || button.dataset?.cardId === cardId) {
+        button.classList.remove('is-selected');
         button.classList.add('is-picked');
       } else {
         button.classList.add('is-dimmed');
@@ -888,34 +1010,61 @@ function handleDailyPick(cardId, pickedButton) {
     });
   }
 
-  const reveal = () => {
-    renderDailyCardSection(card, { isLockedToday: false });
-    setDailyShareFeedback('');
-    isDailyPicking = false;
+  const startStageCeremony = () => {
+    const spreadStage = typeof document !== 'undefined' ? document.getElementById('daily-spread-stage') : null;
+    const stageCard = typeof document !== 'undefined' ? document.getElementById('daily-card-visual') : null;
+    const readingBox = typeof document !== 'undefined' ? document.getElementById('daily-reading-box') : null;
 
-    if (typeof document !== 'undefined') {
-      document.getElementById('daily-result-panel')?.scrollIntoView?.({
-        behavior: 'smooth',
-        block: 'start'
-      });
+    spreadStage?.classList.add('is-drawing');
+    renderDailyCardSection(card, { isLockedToday: false, animateFlip: true });
+    setDailyShareFeedback('');
+
+    // 1단계: 중앙 스테이지에 카드 뒷면 상태로 등장
+    stageCard?.classList.remove('is-flipped');
+    stageCard?.classList.add('is-ceremony-entering');
+    readingBox?.classList.add('is-revealing');
+
+    const completeFlip = () => {
+      setElementHidden(spreadStage, true);
+      spreadStage?.classList.remove('is-drawing');
+      stageCard?.classList.add('is-flipped');
+      isDailyPicking = false;
+
+      if (typeof document !== 'undefined') {
+        document.getElementById('daily-result-panel')?.scrollIntoView?.({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    };
+
+    if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
+      window.setTimeout(completeFlip, 240);
+    } else {
+      completeFlip();
     }
   };
 
   if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
-    window.setTimeout(reveal, 420);
+    window.setTimeout(startStageCeremony, 280);
   } else {
-    reveal();
+    startStageCeremony();
   }
 }
 
 function openDailyScreen() {
   isDailyPicking = false;
+  selectedDailyCardId = null;
+  selectedDailyCardIndex = null;
   setDailyShareFeedback('');
+  updateDailySelectionStatus(null);
 
   const savedCard = getSavedDailyCard();
   const spreadStage = typeof document !== 'undefined' ? document.getElementById('daily-spread-stage') : null;
   const resultPanel = typeof document !== 'undefined' ? document.getElementById('daily-result-panel') : null;
   const shareBtn = typeof document !== 'undefined' ? document.getElementById('share-daily') : null;
+
+  spreadStage?.classList.remove('is-drawing');
 
   if (savedCard) {
     currentDailyCard = savedCard;
@@ -1048,6 +1197,8 @@ function handleShare() {
 function resetView() {
   currentProfile = null;
   currentDailyCard = null;
+  selectedDailyCardId = null;
+  selectedDailyCardIndex = null;
   isDailyPicking = false;
 
   const birthYearInput = document.getElementById('birth-year');
@@ -1178,6 +1329,8 @@ function bindEvents() {
   const shareButton = document.getElementById('share-kakao');
   const modeBirthButton = document.getElementById('mode-birth');
   const modeDailyButton = document.getElementById('mode-daily');
+  const dailyDrawConfirmButton = document.getElementById('daily-draw-confirm');
+  const dailyReshuffleButton = document.getElementById('daily-reshuffle');
   const dailyShareButton = document.getElementById('share-daily');
   const dailyRestartButton = document.getElementById('daily-restart');
   const birthYearInput = document.getElementById('birth-year');
@@ -1192,6 +1345,10 @@ function bindEvents() {
     birthYearInput?.focus?.();
   });
   modeDailyButton?.addEventListener('click', openDailyScreen);
+  dailyDrawConfirmButton?.addEventListener('click', () => {
+    handleDailyPick(selectedDailyCardId);
+  });
+  dailyReshuffleButton?.addEventListener('click', reshuffleDailySpread);
   dailyShareButton?.addEventListener('click', handleDailyShare);
   dailyRestartButton?.addEventListener('click', resetView);
   [birthYearInput, birthMonthInput, birthDayInput].forEach((input) => {
@@ -1247,6 +1404,9 @@ const exported = {
   handleShare,
   handleDailyShare,
   openDailyScreen,
+  selectDailySpreadCard,
+  handleDailyCardTap,
+  reshuffleDailySpread,
   handleDailyPick,
   renderDailyCardSection,
   renderDailySpread,

@@ -789,19 +789,73 @@ body {
 }
 
 .daily-header {
-    padding: 20px 20px 8px;
+    padding: 20px 20px 6px;
 }
 
 .daily-spread-stage {
-    padding: 10px 0 8px;
+    padding: 8px 0 12px;
+    transition: opacity 0.36s ease, transform 0.36s ease;
+}
+
+.daily-spread-stage.is-drawing {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.97);
+    pointer-events: none;
 }
 
 .daily-guide {
     text-align: center;
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     color: var(--accent-gold);
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     padding: 0 20px;
+}
+
+.daily-selection-status {
+    width: fit-content;
+    max-width: calc(100% - 36px);
+    margin: 0 auto 12px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 175, 55, 0.36);
+    background: rgba(20, 10, 36, 0.78);
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    text-align: center;
+    letter-spacing: 0.02em;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+}
+
+.daily-selection-status.is-active {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold-strong);
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.24);
+}
+
+.daily-spread-viewport {
+    position: relative;
+    width: 100%;
+}
+
+.daily-spread-viewport::before,
+.daily-spread-viewport::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.daily-spread-viewport::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(16, 8, 30, 0.92), transparent);
+}
+
+.daily-spread-viewport::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(16, 8, 30, 0.92), transparent);
 }
 
 .daily-spread-track {
@@ -809,10 +863,10 @@ body {
     align-items: center;
     overflow-x: auto;
     overflow-y: visible;
-    padding: 26px 28px 30px;
+    padding: 46px 44px 36px;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    perspective: 900px;
+    perspective: 1000px;
 }
 
 .daily-spread-track::-webkit-scrollbar {
@@ -820,43 +874,97 @@ body {
 }
 
 .daily-spread-track::-webkit-scrollbar-thumb {
-    background: rgba(212, 175, 55, 0.28);
+    background: rgba(212, 175, 55, 0.32);
     border-radius: 999px;
 }
 
 .spread-card {
-    flex: 0 0 78px;
-    width: 78px;
-    height: 132px;
-    margin-left: -42px;
+    flex: 0 0 94px;
+    width: 94px;
+    height: 156px;
+    margin-left: -52px;
     padding: 0;
     border: 0;
     background: transparent;
     cursor: pointer;
     position: relative;
-    perspective: 700px;
+    perspective: 800px;
     transform: translateY(var(--fan-y, 0px)) rotate(var(--fan-rot, 0deg));
-    transition: transform 0.26s ease, opacity 0.26s ease;
+    transition:
+        transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+        margin 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.28s ease,
+        filter 0.28s ease;
+    animation: spreadCardDeal 0.52s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(var(--card-order, 0) * 6ms);
 }
 
 .spread-card:first-child {
     margin-left: 0;
 }
 
+@keyframes spreadCardDeal {
+    0% {
+        opacity: 0;
+        transform: translateX(-36px) translateY(22px) rotate(-8deg) scale(0.86);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(var(--fan-y, 0px)) rotate(var(--fan-rot, 0deg)) scale(1);
+    }
+}
+
+.daily-spread-track.is-shuffling .spread-card {
+    transform: translateY(10px) scale(0.84) rotate(0deg) !important;
+    margin-left: -82px;
+    opacity: 0.35;
+}
+
+.daily-spread-track.is-shuffling .spread-card:first-child {
+    margin-left: 0;
+}
+
 .spread-card:hover,
 .spread-card:focus-visible {
-    transform: translateY(-16px) scale(1.06);
-    z-index: 10;
+    transform: translateY(calc(var(--fan-y, 0px) - 16px)) rotate(0deg) scale(1.05);
+    z-index: 18;
     outline: none;
 }
 
+.spread-card.is-neighbor-left {
+    transform: translateX(-10px) translateY(calc(var(--fan-y, 0px) - 4px)) rotate(calc(var(--fan-rot, 0deg) - 3deg));
+}
+
+.spread-card.is-neighbor-right {
+    transform: translateX(10px) translateY(calc(var(--fan-y, 0px) - 4px)) rotate(calc(var(--fan-rot, 0deg) + 3deg));
+}
+
+.spread-card.is-selected {
+    transform: translateY(-30px) rotate(0deg) scale(1.13);
+    z-index: 25;
+    animation: selectedCardFloat 2.4s ease-in-out infinite;
+}
+
+@keyframes selectedCardFloat {
+    0%,
+    100% {
+        transform: translateY(-30px) rotate(0deg) scale(1.13);
+    }
+
+    50% {
+        transform: translateY(-36px) rotate(0deg) scale(1.14);
+    }
+}
+
 .spread-card.is-picked {
-    transform: translateY(-18px) scale(1.08);
-    z-index: 12;
+    transform: translateY(-42px) scale(1.18);
+    z-index: 30;
 }
 
 .spread-card.is-dimmed {
-    opacity: 0.36;
+    opacity: 0.28;
+    filter: saturate(0.6);
     pointer-events: none;
 }
 
@@ -864,10 +972,16 @@ body {
     position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 12px;
+    border-radius: 14px;
     transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.55);
+}
+
+.spread-card.is-selected .spread-card-inner {
+    box-shadow:
+        0 0 26px rgba(244, 212, 106, 0.55),
+        0 18px 34px rgba(0, 0, 0, 0.65);
 }
 
 .spread-card.is-picked .spread-card-inner {
@@ -878,7 +992,7 @@ body {
 .spread-card-front {
     position: absolute;
     inset: 0;
-    border-radius: 12px;
+    border-radius: 14px;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     overflow: hidden;
@@ -888,34 +1002,82 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
+    justify-content: space-between;
+    padding: 12px 10px;
     background:
-        radial-gradient(circle at 50% 35%, rgba(212, 175, 55, 0.22), transparent 58%),
-        linear-gradient(165deg, #271342 0%, #120822 100%);
-    border: 1px solid rgba(212, 175, 55, 0.52);
+        radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.26), transparent 62%),
+        linear-gradient(160deg, #2b1448 0%, #150928 52%, #0d051a 100%);
+    border: 1px solid rgba(212, 175, 55, 0.62);
+}
+
+.spread-card.is-selected .spread-card-back {
+    border-color: var(--accent-gold-strong);
 }
 
 .spread-card-back::before {
     content: '';
     position: absolute;
     inset: 6px;
-    border-radius: 8px;
-    border: 1px solid rgba(212, 175, 55, 0.28);
+    border-radius: 9px;
+    border: 1px solid rgba(212, 175, 55, 0.34);
+    background:
+        radial-gradient(circle at 50% 50%, transparent 48%, rgba(212, 175, 55, 0.08) 50%, transparent 52%);
     pointer-events: none;
 }
 
+.spread-card-back::after {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: linear-gradient(120deg, transparent 38%, rgba(244, 212, 106, 0.28) 50%, transparent 62%);
+    transform: translateX(-80%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+}
+
+.spread-card:hover .spread-card-back::after,
+.spread-card.is-selected .spread-card-back::after {
+    transform: translateX(80%);
+}
+
+.spread-card-moon {
+    font-size: 0.65rem;
+    color: rgba(244, 212, 106, 0.72);
+    line-height: 1;
+}
+
+.spread-card-medallion {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.48);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: inset 0 0 12px rgba(212, 175, 55, 0.22);
+}
+
+.spread-card-medallion::before {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    transform: rotate(45deg);
+}
+
 .spread-card-glyph {
-    color: var(--accent-gold);
-    font-size: 1.05rem;
-    text-shadow: 0 0 10px var(--accent-gold-glow);
+    color: var(--accent-gold-strong);
+    font-size: 1.15rem;
+    text-shadow: 0 0 12px var(--accent-gold-glow);
 }
 
 .spread-card-index {
     font-family: var(--font-fancy);
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
-    color: rgba(248, 244, 255, 0.55);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    color: rgba(248, 244, 255, 0.68);
 }
 
 .spread-card-front {
@@ -931,8 +1093,281 @@ body {
     display: block;
 }
 
+.daily-spread-controls {
+    max-width: 420px;
+    margin: 6px auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.daily-draw-btn {
+    animation: drawBtnPulse 1.9s ease-in-out infinite;
+}
+
+@keyframes drawBtnPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 18px rgba(212, 175, 55, 0.28);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(244, 212, 106, 0.55);
+    }
+}
+
+.daily-reshuffle-btn {
+    font-size: 0.9rem;
+    padding: 12px 16px;
+}
+
 .daily-result-panel {
     padding: 10px 20px 10px;
+}
+
+.daily-stage-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 14px;
+    perspective: 1200px;
+}
+
+.stage-aura {
+    position: absolute;
+    width: 270px;
+    height: 270px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244, 212, 106, 0.34) 0%, rgba(138, 79, 255, 0.14) 48%, transparent 72%);
+    filter: blur(8px);
+    pointer-events: none;
+    animation: stageAuraBreath 3.2s ease-in-out infinite;
+}
+
+@keyframes stageAuraBreath {
+    0%,
+    100% {
+        transform: scale(0.95);
+        opacity: 0.72;
+    }
+
+    50% {
+        transform: scale(1.08);
+        opacity: 1;
+    }
+}
+
+.stage-sparkles {
+    position: absolute;
+    inset: -16px -26px;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.stage-sparkle {
+    position: absolute;
+    color: var(--accent-gold-strong);
+    font-size: 1.1rem;
+    text-shadow: 0 0 12px var(--accent-gold);
+    animation: sparkleTwinkle 2.4s ease-in-out infinite;
+}
+
+.stage-sparkle.sp-1 {
+    top: 8%;
+    left: 4%;
+    animation-delay: 0.1s;
+}
+
+.stage-sparkle.sp-2 {
+    top: 14%;
+    right: 4%;
+    animation-delay: 0.6s;
+}
+
+.stage-sparkle.sp-3 {
+    bottom: 14%;
+    left: 6%;
+    animation-delay: 1.1s;
+}
+
+.stage-sparkle.sp-4 {
+    bottom: 10%;
+    right: 6%;
+    animation-delay: 1.6s;
+}
+
+@keyframes sparkleTwinkle {
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scale(0.8) rotate(0deg);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.22) rotate(18deg);
+    }
+}
+
+.daily-stage-card {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    box-shadow: none;
+    overflow: visible;
+    perspective: 1200px;
+}
+
+.daily-stage-card::before,
+.daily-stage-card::after {
+    display: none;
+}
+
+.daily-stage-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.82s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.daily-stage-card.is-ceremony-entering {
+    animation: stageCardRise 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes stageCardRise {
+    0% {
+        transform: translateY(34px) scale(0.82);
+        opacity: 0.2;
+    }
+
+    45% {
+        transform: translateY(-10px) scale(1.04);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.daily-stage-card.is-flipped .daily-stage-card-inner {
+    transform: rotateY(180deg);
+}
+
+.daily-stage-card-back,
+.daily-stage-card-front {
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.daily-stage-card-back {
+    background:
+        radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.28), transparent 64%),
+        linear-gradient(160deg, #2b1448 0%, #150928 54%, #0c0418 100%);
+    border: 1px solid var(--accent-gold);
+}
+
+.tarot-back-ornament {
+    position: absolute;
+    inset: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 175, 55, 0.46);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 14px;
+}
+
+.tarot-back-moon {
+    color: var(--accent-gold);
+    font-size: 1.2rem;
+}
+
+.tarot-back-ring {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 24px rgba(212, 175, 55, 0.25);
+}
+
+.tarot-back-ring::before {
+    content: '';
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    transform: rotate(45deg);
+}
+
+.tarot-back-star {
+    font-size: 2rem;
+    color: var(--accent-gold-strong);
+    text-shadow: 0 0 18px var(--accent-gold);
+}
+
+.daily-stage-card-front {
+    transform: rotateY(180deg);
+    padding: 24px;
+    gap: 12px;
+}
+
+.stage-front-sheen {
+    position: absolute;
+    inset: -40%;
+    background: linear-gradient(115deg, transparent 40%, rgba(255, 236, 168, 0.38) 50%, transparent 60%);
+    transform: translateX(-120%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.daily-stage-card.is-flipped .stage-front-sheen {
+    animation: stageFrontSheen 1.1s ease 0.28s forwards;
+}
+
+@keyframes stageFrontSheen {
+    0% {
+        transform: translateX(-120%);
+    }
+
+    100% {
+        transform: translateX(120%);
+    }
+}
+
+.daily-reading-box {
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.daily-reading-box.is-revealing {
+    animation: readingBoxFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes readingBoxFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .daily-lock-notice {
@@ -1093,6 +1528,12 @@ body {
     .mode-btn,
     .spread-card,
     .spread-card-inner,
+    .daily-stage-card,
+    .daily-stage-card-inner,
+    .daily-reading-box,
+    .stage-aura,
+    .stage-sparkle,
+    .stage-front-sheen,
     .dot,
     .card-outline,
     .swipe-hint,

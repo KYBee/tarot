@@ -692,3 +692,22 @@ test('shareDailyCard falls back to clipboard when the share sheet fails', async 
 
   assert.match(copiedText, /오늘의 카드: 소드 에이스/);
 });
+
+test('daily spread supports two-step card levitation, reshuffle, and 3D stage flip markup', () => {
+  const latestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const latestCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
+
+  assert.match(latestHtml, /id="daily-selection-status"/);
+  assert.match(latestHtml, /id="daily-draw-confirm"/);
+  assert.match(latestHtml, /id="daily-reshuffle"/);
+  assert.match(latestHtml, /id="daily-stage-card-inner"/);
+  assert.match(latestCss, /\.spread-card\.is-selected/);
+  assert.match(latestCss, /\.daily-stage-card\.is-flipped\s+\.daily-stage-card-inner/);
+
+  tarot.resetView();
+  const selection = tarot.selectDailySpreadCard('wands-01', 12);
+  assert.deepEqual(selection, {
+    cardId: 'wands-01',
+    index: 12
+  });
+});
