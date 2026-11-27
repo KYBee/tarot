@@ -22,10 +22,21 @@
             <div class="container">
                 <header>
                     <h1 class="glow-text">너의 타로는?</h1>
-                    <p class="subtitle">생년월일로 보는 나의 타로 프로필</p>
+                    <p class="subtitle">생년월일로 보는 나의 타로 프로필과 오늘의 운세</p>
                 </header>
 
-                <div class="input-card card-frame">
+                <div class="mode-selector" role="group" aria-label="타로 메뉴 선택">
+                    <button type="button" id="mode-birth" class="mode-btn active" aria-pressed="true">
+                        <span class="mode-btn-label">탄생카드 보기</span>
+                        <span class="mode-btn-desc">생년월일로 읽는 타고난 성향과 연도 흐름</span>
+                    </button>
+                    <button type="button" id="mode-daily" class="mode-btn" aria-pressed="false">
+                        <span class="mode-btn-label">오늘의 운세</span>
+                        <span class="mode-btn-desc">78장 타로 덱에서 직접 고르는 오늘의 한 장</span>
+                    </button>
+                </div>
+
+                <div class="input-card card-frame" id="birth-input-card">
                     <div class="input-group">
                         <label for="birth-year">생년월일</label>
                         <div class="birthdate-fields" role="group" aria-labelledby="birthdate-group-label">
@@ -255,6 +266,58 @@
                 </div>
             </div>
         </section>
+
+        <!-- Daily Fortune Page -->
+        <section id="daily" class="screen">
+            <div class="container no-padding">
+                <div class="item-content daily-header">
+                    <h2 class="item-title">오늘의 운세</h2>
+                    <p class="type-definition" id="daily-type-def">78장의 타로 덱에서 오늘 하루의 흐름과 마주할 카드를 한 장 고릅니다.</p>
+                </div>
+
+                <div class="daily-spread-stage" id="daily-spread-stage">
+                    <p class="daily-guide" id="daily-guide">마음을 가다듬고 끌리는 카드 한 장을 골라보세요.</p>
+                    <div class="daily-spread-track" id="daily-spread" role="group" aria-label="78장의 타로 카드 뒷면 스프레드"></div>
+                    <p class="swipe-hint" id="daily-spread-hint">← 옆으로 밀어 78장의 카드를 살펴보세요 →</p>
+                </div>
+
+                <div class="item-content daily-result-panel" id="daily-result-panel" hidden>
+                    <p class="daily-lock-notice" id="daily-lock-notice" hidden>오늘 이미 뽑은 카드예요. 하루 동안 같은 카드로 오늘의 흐름을 읽습니다.</p>
+                    <div class="card-visual card-frame gold-glow" id="daily-card-visual">
+                        <img class="card-art" id="res-daily-art" src="img/00-TheFool.png" alt="오늘의 카드 이미지">
+                        <span class="card-number" id="res-daily-num">0/22</span>
+                        <span class="card-name" id="res-daily-name">바보</span>
+                    </div>
+                    <div class="card-info-box card-frame thin">
+                        <div class="info-block">
+                            <h4 class="info-label">기본 의미</h4>
+                            <p class="info-meaning" id="res-daily-meaning">시작, 가능성, 자유, 호기심</p>
+                        </div>
+                        <hr class="gold-divider">
+                        <div class="info-block">
+                            <h4 class="info-label">그림 속 상징</h4>
+                            <p class="info-desc" id="res-daily-symbolism"></p>
+                        </div>
+                        <hr class="gold-divider">
+                        <div class="info-block interpretation-block">
+                            <h4 class="info-label">오늘의 메시지</h4>
+                            <p class="info-desc" id="res-daily-message"></p>
+                        </div>
+                        <hr class="gold-divider">
+                        <div class="info-block identity-block">
+                            <h4 class="info-label">오늘의 한 줄 조언</h4>
+                            <p class="card-tagline" id="res-daily-advice"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bottom-actions padding-x">
+                    <button id="share-daily" class="btn-share" hidden>카카오톡으로 오늘의 운세 공유하기</button>
+                    <p id="daily-share-feedback" class="share-feedback" aria-live="polite"></p>
+                    <button id="daily-restart" class="btn-secondary">처음으로</button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -263,6 +326,7 @@
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.0/kakao.min.js"></script>
     <script src="config.js"></script>
     <script src="data/card-content.js"></script>
+    <script src="data/minor-arcana-content.js"></script>
     <script src="script.js"></script>
 </body>
 

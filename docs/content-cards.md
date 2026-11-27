@@ -1,8 +1,8 @@
 # 카드 콘텐츠
 
-관련 문서: [content-model.md](./content-model.md), [content-writing-guide.md](./content-writing-guide.md), [calculation-rules.md](./calculation-rules.md)
+관련 문서: [content-model.md](./content-model.md), [content-writing-guide.md](./content-writing-guide.md), [calculation-rules.md](./calculation-rules.md), [content-daily-cards.md](./content-daily-cards.md)
 
-이 문서는 탄생카드와 페르소나 카드에 공통으로 사용할 카드 콘텐츠 V2와 연도 카드 전용 흐름 해석을 정리한다. 바보 카드는 canonical 번호 `0`을 사용하되 서비스 노출 시에는 `0/22 바보`로 병기할 수 있다.
+이 문서는 탄생카드와 페르소나 카드에 공통으로 사용할 카드 콘텐츠 V2와 연도 카드 전용 흐름 해석을 정리한다. 바보 카드는 canonical 번호 `0`을 사용하되 서비스 노출 시에는 `0/22 바보`로 병기할 수 있다. 메이저 22장과 마이너 56장의 '오늘의 운세' 전용 콘텐츠는 [content-daily-cards.md](./content-daily-cards.md)에 정리되어 있다.
 
 상징 검토 기준: A. E. Waite, [The Pictorial Key to the Tarot](https://en.wikisource.org/wiki/The_Pictorial_Key_to_the_Tarot)와 현재 `img/`의 Rider-Waite-Smith 계열 이미지. 탄생카드와 페르소나 카드라는 역할 구분은 Waite의 원문 용어가 아니라 이 서비스의 해석 구조다.
 
