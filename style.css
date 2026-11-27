@@ -149,6 +149,59 @@ body {
     margin: 0 auto;
 }
 
+.mode-selector {
+    max-width: 420px;
+    margin: 0 auto 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.mode-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 16px 15px;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    background: linear-gradient(180deg, rgba(33, 17, 54, 0.72) 0%, rgba(16, 9, 28, 0.84) 100%);
+    color: var(--text-soft);
+    font-family: var(--font-base);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mode-btn.active {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 22px rgba(212, 175, 55, 0.22);
+    color: var(--text-main);
+}
+
+.mode-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--glass-border-strong);
+}
+
+.mode-btn-label {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+}
+
+.mode-btn-desc {
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--text-dim);
+}
+
+@media (max-width: 360px) {
+    .mode-selector {
+        grid-template-columns: 1fr;
+    }
+}
+
 .input-group {
     margin-bottom: 18px;
 }

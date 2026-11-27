@@ -22,10 +22,21 @@
             <div class="container">
                 <header>
                     <h1 class="glow-text">너의 타로는?</h1>
-                    <p class="subtitle">생년월일로 보는 나의 타로 프로필</p>
+                    <p class="subtitle">생년월일로 보는 나의 타로 프로필과 오늘의 운세</p>
                 </header>
 
-                <div class="input-card card-frame">
+                <div class="mode-selector" role="group" aria-label="타로 메뉴 선택">
+                    <button type="button" id="mode-birth" class="mode-btn active" aria-pressed="true">
+                        <span class="mode-btn-label">탄생카드 보기</span>
+                        <span class="mode-btn-desc">생년월일로 읽는 타고난 성향과 연도 흐름</span>
+                    </button>
+                    <button type="button" id="mode-daily" class="mode-btn" aria-pressed="false">
+                        <span class="mode-btn-label">오늘의 운세</span>
+                        <span class="mode-btn-desc">78장 타로 덱에서 직접 고르는 오늘의 한 장</span>
+                    </button>
+                </div>
+
+                <div class="input-card card-frame" id="birth-input-card">
                     <div class="input-group">
                         <label for="birth-year">생년월일</label>
                         <div class="birthdate-fields" role="group" aria-labelledby="birthdate-group-label">
