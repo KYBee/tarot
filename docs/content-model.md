@@ -107,9 +107,14 @@
 - 해석 문장: `yearFlowDescription`
 - 현재 연도 카드만 별도 스타일링
 
+### 오늘의 운세 (78장)
+
+- 메이저 22장(`data/card-content.js`)과 마이너 56장(`data/minor-arcana-content.js`) 모두 `keywords`, `symbolismDescription`, `dailyMessage`, `dailyAdvice`를 가진다.
+- 정방향만 사용하며, 카드 비주얼·기본 의미·그림 속 상징·오늘의 메시지·오늘의 한 줄 조언 순서로 렌더링한다.
+
 ## 7. 데이터 관리 원칙
 
-- 런타임 single source of truth는 `data/card-content.js`다.
-- 사람이 검토하는 원문은 `docs/content-cards.md`와 함께 유지한다.
-- 카드 텍스트를 바꾸면 두 파일을 같은 변경에서 동기화한다.
+- 런타임 single source of truth는 메이저 `data/card-content.js`, 마이너 `data/minor-arcana-content.js`다.
+- 사람이 검토하는 원문은 `docs/content-cards.md` 및 `docs/content-daily-cards.md`와 함께 유지한다.
+- 카드 텍스트를 바꾸면 데이터 파일과 문서를 같은 변경에서 동기화한다.
 - 정적 사이트이므로 번들러나 fetch 없이 전역 객체와 CommonJS 호환 형태를 유지한다.

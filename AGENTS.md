@@ -34,11 +34,14 @@
 
 현재 MVP는 이미 구현되어 있다.
 
-- 입력 화면, 로딩 화면, 결과 화면이 동작한다.
+- 입력 화면, 로딩 화면, 결과 화면, 오늘의 운세 화면이 동작한다.
+- 랜딩에서 `탄생카드 보기`와 `오늘의 운세` 두 가지 진입 버튼을 제공한다.
 - 계산 로직은 문서 기준으로 구현되어 있다.
 - 탄생카드 / 페르소나 카드 / 작년·올해·내년 연도 카드가 렌더링된다.
 - 별도 페르소나 카드가 나오지 않을 때는 탄생카드 결과만 보여주고 페르소나 UI는 숨긴다.
-- 카드 이미지 세트는 `img/` 디렉터리에 연결되어 있다.
+- 오늘의 운세는 78장(메이저 22장 + 마이너 56장) 정방향 덱을 셔플해 카드 뒷면 스프레드로 보여주고, 사용자가 선택한 1장을 뒤집어 오늘의 메시지와 한 줄 조언을 보여준다.
+- 오늘의 운세 결과는 로컬 날짜(`YYYY-MM-DD`) 기준으로 `localStorage`에 저장해 같은 날 다시 열면 같은 카드를 보여준다. (브라우저 캐시/사이트 데이터 삭제, 시크릿 모드, 다른 기기·브라우저에서는 초기화된다.)
+- 카드 이미지 세트는 메이저 22장이 `img/`, 마이너 56장이 `img/minor/` 디렉터리에 연결되어 있다.
 - 카카오 공유는 Kakao SDK 로드·초기화·`Kakao.Share.sendDefault()` 호출 코드까지 구현되어 있다. 실제 동작 여부는 배포 환경의 `KAKAO_JS_KEY`와 Kakao Developers 도메인 등록에 달려 있다.
 - 키가 없거나 SDK 호출이 실패하면 Web Share API -> 클립보드 복사 -> alert 순서로 fallback한다. 사용자가 공유 시트를 취소하면 복사로 넘어가지 않는다.
 
@@ -78,15 +81,17 @@
 - 딥 퍼플 / 골드 / 글래스 카드 / 우주적 배경 방향을 유지한다.
 - 텍스트가 길어도 읽히는 line-height, spacing, overlay 처리를 우선한다.
 
-### `data/card-content.js`
+### `data/card-content.js` / `data/minor-arcana-content.js`
 
-- 카드 콘텐츠와 공통 문구의 single source of truth다.
-- 카드 텍스트를 수정할 때는 이 파일과 `docs/content-cards.md`를 함께 맞춘다.
+- `data/card-content.js`: 메이저 아르카나 0~21 콘텐츠와 공통 문구의 single source of truth다.
+- `data/minor-arcana-content.js`: 마이너 아르카나 56장(완드·컵·소드·펜타클)의 상징 설명과 오늘의 운세 문구를 담는다.
+- 카드 텍스트를 수정할 때는 이 파일들과 `docs/content-cards.md`, `docs/content-daily-cards.md`를 함께 맞춘다.
 
-### `img/`
+### `img/` · `img/minor/`
 
-- 메이저 아르카나 0~21 카드 이미지 세트가 들어 있다.
-- 현재 `script.js`의 `CARD_IMAGE_FILES` 매핑이 이 디렉터리를 기준으로 동작한다.
+- `img/`에는 메이저 아르카나 0~21 카드 이미지 세트가 들어 있다.
+- `img/minor/`에는 1909 Rider-Waite-Smith 퍼블릭 도메인 마이너 아르카나 56장 이미지와 `SOURCE.md`가 들어 있다.
+- 현재 `script.js`의 `CARD_IMAGE_FILES`와 `data/minor-arcana-content.js`의 `imagePath`가 이 디렉터리를 기준으로 동작한다.
 - 새 이미지를 교체해도 파일명 규칙이 바뀌면 매핑도 함께 수정해야 한다.
 
 ### `tests/script.test.js`
