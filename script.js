@@ -54,6 +54,9 @@ const CARD_IMAGE_FILES = {
 };
 
 let currentProfile = null;
+let currentDailyCard = null;
+let currentDailyDeck = [];
+let isDailyPicking = false;
 
 function sumDigits(number) {
   return String(Math.abs(number))
@@ -764,6 +767,229 @@ function setShareFeedback(message) {
   setElementText('share-feedback', message);
 }
 
+function setDailyShareFeedback(message) {
+  setElementText('daily-share-feedback', message);
+}
+
+function getDailyBadgeText(card) {
+  if (!card) {
+    return '';
+  }
+
+  if (card.arcana === 'major') {
+    return card.displayNumber || String(card.canonicalNumber ?? '');
+  }
+
+  const suitLabels = {
+    wands: 'WANDS',
+    cups: 'CUPS',
+    swords: 'SWORDS',
+    pentacles: 'PENTACLES'
+  };
+  return `${suitLabels[card.suit] || 'MINOR'} · ${String(card.rank || '').padStart(2, '0')}`;
+}
+
+function renderDailyCardSection(card, options = {}) {
+  if (!card) {
+    return;
+  }
+
+  setElementText('daily-type-def', APP_COPY.daily?.definition || '78장의 타로 덱에서 오늘 하루의 흐름과 마주할 카드를 한 장 고릅니다.');
+  setElementText('res-daily-num', getDailyBadgeText(card));
+  setElementText('res-daily-name', card.name);
+  setElementText(
+    'res-daily-meaning',
+    Array.isArray(card.keywords) ? card.keywords.join(', ') : String(card.keywords || '')
+  );
+  setElementText('res-daily-symbolism', card.symbolismDescription || '');
+  setElementText('res-daily-message', card.dailyMessage || '');
+  setElementText('res-daily-advice', card.dailyAdvice || '');
+  setImageSource('res-daily-art', card.imagePath, `${card.name} 카드 이미지`);
+
+  if (typeof document !== 'undefined') {
+    const badgeEl = document.getElementById('res-daily-num');
+    badgeEl?.classList.toggle('is-minor-badge', card.arcana === 'minor');
+    setElementHidden(document.getElementById('daily-lock-notice'), !options.isLockedToday);
+    setElementHidden(document.getElementById('daily-result-panel'), false);
+    setElementHidden(document.getElementById('share-daily'), false);
+  }
+}
+
+function renderDailySpread(deck) {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const spreadContainer = document.getElementById('daily-spread');
+  if (!spreadContainer || typeof document.createElement !== 'function') {
+    return;
+  }
+
+  spreadContainer.innerHTML = '';
+  const total = deck.length || 1;
+  const midpoint = (total - 1) / 2;
+
+  deck.forEach((card, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'spread-card';
+    button.dataset.cardId = card.id;
+    button.dataset.cardIndex = String(index);
+    button.setAttribute('aria-label', `78장 중 ${index + 1}번째 카드 고르기`);
+
+    const normalizedOffset = (index - midpoint) / midpoint;
+    const waveY = Math.round(Math.sin(index * 0.45) * 4);
+    const angle = (normalizedOffset * 4).toFixed(2);
+    button.style.setProperty('--fan-y', `${waveY}px`);
+    button.style.setProperty('--fan-rot', `${angle}deg`);
+
+    const indexLabel = String(index + 1).padStart(2, '0');
+    button.innerHTML = [
+      '<span class="spread-card-inner">',
+      '  <span class="spread-card-back">',
+      '    <span class="spread-card-glyph" aria-hidden="true">✦</span>',
+      `    <span class="spread-card-index">${indexLabel}</span>`,
+      '  </span>',
+      '  <span class="spread-card-front">',
+      `    <img src="${card.imagePath}" alt="${card.name} 카드 이미지" loading="lazy">`,
+      '  </span>',
+      '</span>'
+    ].join('');
+
+    button.addEventListener('click', () => {
+      handleDailyPick(card.id, button);
+    });
+
+    spreadContainer.appendChild(button);
+  });
+}
+
+function handleDailyPick(cardId, pickedButton) {
+  if (isDailyPicking || currentDailyCard) {
+    return;
+  }
+
+  const card = getDailyCardContent(cardId);
+  if (!card) {
+    return;
+  }
+
+  isDailyPicking = true;
+  currentDailyCard = card;
+  saveDailyCard(card.id);
+
+  if (typeof document !== 'undefined') {
+    document.querySelectorAll('.spread-card').forEach((button) => {
+      if (button === pickedButton || button.dataset?.cardId === cardId) {
+        button.classList.add('is-picked');
+      } else {
+        button.classList.add('is-dimmed');
+      }
+    });
+  }
+
+  const reveal = () => {
+    renderDailyCardSection(card, { isLockedToday: false });
+    setDailyShareFeedback('');
+    isDailyPicking = false;
+
+    if (typeof document !== 'undefined') {
+      document.getElementById('daily-result-panel')?.scrollIntoView?.({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
+  if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
+    window.setTimeout(reveal, 420);
+  } else {
+    reveal();
+  }
+}
+
+function openDailyScreen() {
+  isDailyPicking = false;
+  setDailyShareFeedback('');
+
+  const savedCard = getSavedDailyCard();
+  const spreadStage = typeof document !== 'undefined' ? document.getElementById('daily-spread-stage') : null;
+  const resultPanel = typeof document !== 'undefined' ? document.getElementById('daily-result-panel') : null;
+  const shareBtn = typeof document !== 'undefined' ? document.getElementById('share-daily') : null;
+
+  if (savedCard) {
+    currentDailyCard = savedCard;
+    setElementHidden(spreadStage, true);
+    renderDailyCardSection(savedCard, { isLockedToday: true });
+  } else {
+    currentDailyCard = null;
+    currentDailyDeck = shuffleDeck(buildDeck());
+    setElementHidden(spreadStage, false);
+    setElementHidden(resultPanel, true);
+    setElementHidden(shareBtn, true);
+    renderDailySpread(currentDailyDeck);
+  }
+
+  showScreen('daily');
+  if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+async function shareDailyCard(card = currentDailyCard) {
+  if (!card) {
+    setDailyShareFeedback(APP_COPY.messages?.shareUnavailable || '공유할 결과가 아직 없어요.');
+    return 'unavailable';
+  }
+
+  const shareText = getDailyShareText(card);
+  const shareUrl = getShareUrl();
+  const kakaoPayload = buildDailyKakaoSharePayload(card);
+
+  if (kakaoPayload && initKakaoShare() && typeof window !== 'undefined' && window.Kakao?.Share?.sendDefault) {
+    try {
+      window.Kakao.Share.sendDefault(kakaoPayload);
+      setDailyShareFeedback(KAKAO_SDK_MESSAGE);
+      return 'kakao';
+    } catch (error) {
+      // SDK 설정/도메인 오류 시 fallback으로 내려간다.
+    }
+  }
+
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      await navigator.share({
+        title: '너의 타로는? | 오늘의 타로 운세',
+        text: shareText,
+        url: shareUrl
+      });
+      setDailyShareFeedback('공유 시트를 열었어요.');
+      return 'web-share';
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        setDailyShareFeedback('');
+        return 'cancelled';
+      }
+    }
+  }
+
+  const copied = await copyShareText(shareText);
+  if (copied) {
+    setDailyShareFeedback(APP_COPY.messages?.shareFallback || '결과 텍스트를 복사했어요.');
+    return 'copied';
+  }
+
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(`${APP_COPY.messages?.shareFallback || '공유 텍스트를 준비했어요.'}\n\n${shareText}`);
+  }
+
+  return 'alert';
+}
+
+function handleDailyShare() {
+  return shareDailyCard(currentDailyCard);
+}
+
 async function shareProfile(profile) {
   if (!profile) {
     setShareFeedback(APP_COPY.messages?.shareUnavailable || '공유할 결과가 아직 없어요.');
@@ -821,6 +1047,8 @@ function handleShare() {
 
 function resetView() {
   currentProfile = null;
+  currentDailyCard = null;
+  isDailyPicking = false;
 
   const birthYearInput = document.getElementById('birth-year');
   const birthMonthInput = document.getElementById('birth-month');
@@ -839,6 +1067,7 @@ function resetView() {
   }
 
   setShareFeedback('');
+  setDailyShareFeedback('');
   resetProfileDetails();
   showScreen('landing');
 
@@ -947,6 +1176,10 @@ function bindEvents() {
   const startButton = document.getElementById('cta-start');
   const restartButton = document.getElementById('restart');
   const shareButton = document.getElementById('share-kakao');
+  const modeBirthButton = document.getElementById('mode-birth');
+  const modeDailyButton = document.getElementById('mode-daily');
+  const dailyShareButton = document.getElementById('share-daily');
+  const dailyRestartButton = document.getElementById('daily-restart');
   const birthYearInput = document.getElementById('birth-year');
   const birthMonthInput = document.getElementById('birth-month');
   const birthDayInput = document.getElementById('birth-day');
@@ -954,6 +1187,13 @@ function bindEvents() {
   startButton?.addEventListener('click', handleStart);
   restartButton?.addEventListener('click', resetView);
   shareButton?.addEventListener('click', handleShare);
+  modeBirthButton?.addEventListener('click', () => {
+    showScreen('landing');
+    birthYearInput?.focus?.();
+  });
+  modeDailyButton?.addEventListener('click', openDailyScreen);
+  dailyShareButton?.addEventListener('click', handleDailyShare);
+  dailyRestartButton?.addEventListener('click', resetView);
   [birthYearInput, birthMonthInput, birthDayInput].forEach((input) => {
     input?.addEventListener('input', handleBirthFieldInput);
     input?.addEventListener('blur', handleBirthFieldBlur);
@@ -1003,7 +1243,13 @@ const exported = {
   formatYearTrace,
   buildTarotProfile,
   shareProfile,
+  shareDailyCard,
   handleShare,
+  handleDailyShare,
+  openDailyScreen,
+  handleDailyPick,
+  renderDailyCardSection,
+  renderDailySpread,
   resetView,
   renderBirthCardSection,
   renderPersonaCardSection,

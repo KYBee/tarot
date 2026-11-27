@@ -621,3 +621,74 @@ test('getDailyShareText and buildDailyKakaoSharePayload include daily card detai
   assert.equal(payload.link.mobileWebUrl, 'https://tarot-zeta-two.vercel.app/');
   assert.match(payload.text, /오늘의 카드: 완드 에이스/);
 });
+
+test('index.html includes daily fortune screen, mode selector, and minor arcana data script', () => {
+  const latestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+
+  assert.match(latestHtml, /id="mode-birth"/);
+  assert.match(latestHtml, /id="mode-daily"/);
+  assert.match(latestHtml, /id="daily"/);
+  assert.match(latestHtml, /id="daily-spread"/);
+  assert.match(latestHtml, /id="daily-result-panel"/);
+  assert.match(latestHtml, /id="res-daily-art"/);
+  assert.match(latestHtml, /id="res-daily-name"/);
+  assert.match(latestHtml, /id="res-daily-meaning"/);
+  assert.match(latestHtml, /id="res-daily-symbolism"/);
+  assert.match(latestHtml, /id="res-daily-message"/);
+  assert.match(latestHtml, /id="res-daily-advice"/);
+  assert.match(latestHtml, /id="share-daily"/);
+  assert.match(latestHtml, /id="daily-restart"/);
+  assert.match(latestHtml, /<script src="data\/minor-arcana-content\.js"><\/script>/);
+});
+
+test('shareDailyCard does not copy text when the user cancels the share sheet', async () => {
+  assert.equal(typeof tarot.shareDailyCard, 'function');
+
+  let copiedText = null;
+  const card = tarot.getDailyCardContent('cups-14');
+
+  await withMockNavigator(
+    {
+      share: async () => {
+        const error = new Error('Share canceled');
+        error.name = 'AbortError';
+        throw error;
+      },
+      clipboard: {
+        writeText: async (text) => {
+          copiedText = text;
+        }
+      }
+    },
+    async () => {
+      const result = await tarot.shareDailyCard(card);
+      assert.equal(result, 'cancelled');
+    }
+  );
+
+  assert.equal(copiedText, null);
+});
+
+test('shareDailyCard falls back to clipboard when the share sheet fails', async () => {
+  let copiedText = null;
+  const card = tarot.getDailyCardContent('swords-01');
+
+  await withMockNavigator(
+    {
+      share: async () => {
+        throw new Error('Share unavailable');
+      },
+      clipboard: {
+        writeText: async (text) => {
+          copiedText = text;
+        }
+      }
+    },
+    async () => {
+      const result = await tarot.shareDailyCard(card);
+      assert.equal(result, 'copied');
+    }
+  );
+
+  assert.match(copiedText, /오늘의 카드: 소드 에이스/);
+});
