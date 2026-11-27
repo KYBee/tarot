@@ -276,19 +276,49 @@
                 </div>
 
                 <div class="daily-spread-stage" id="daily-spread-stage">
-                    <p class="daily-guide" id="daily-guide">마음을 가다듬고 끌리는 카드 한 장을 골라보세요.</p>
-                    <div class="daily-spread-track" id="daily-spread" role="group" aria-label="78장의 타로 카드 뒷면 스프레드"></div>
+                    <p class="daily-guide" id="daily-guide">마음을 가다듬고 끌리는 카드를 터치해 들어올려 보세요.</p>
+                    <p class="daily-selection-status" id="daily-selection-status" aria-live="polite">78장의 카드가 펼쳐져 있습니다</p>
+                    <div class="daily-spread-viewport">
+                        <div class="daily-spread-track" id="daily-spread" role="group" aria-label="78장의 타로 카드 뒷면 스프레드"></div>
+                    </div>
                     <p class="swipe-hint" id="daily-spread-hint">← 옆으로 밀어 78장의 카드를 살펴보세요 →</p>
+                    <div class="daily-spread-controls padding-x">
+                        <button type="button" id="daily-draw-confirm" class="btn-primary daily-draw-btn" hidden>선택한 카드 뒤집기 ✦</button>
+                        <button type="button" id="daily-reshuffle" class="btn-secondary daily-reshuffle-btn">카드 다시 섞기 ↻</button>
+                    </div>
                 </div>
 
                 <div class="item-content daily-result-panel" id="daily-result-panel" hidden>
                     <p class="daily-lock-notice" id="daily-lock-notice" hidden>오늘 이미 뽑은 카드예요. 하루 동안 같은 카드로 오늘의 흐름을 읽습니다.</p>
-                    <div class="card-visual card-frame gold-glow" id="daily-card-visual">
-                        <img class="card-art" id="res-daily-art" src="img/00-TheFool.png" alt="오늘의 카드 이미지">
-                        <span class="card-number" id="res-daily-num">0/22</span>
-                        <span class="card-name" id="res-daily-name">바보</span>
+                    <div class="daily-stage-wrapper">
+                        <div class="stage-aura" aria-hidden="true"></div>
+                        <div class="stage-sparkles" aria-hidden="true">
+                            <span class="stage-sparkle sp-1">✦</span>
+                            <span class="stage-sparkle sp-2">✧</span>
+                            <span class="stage-sparkle sp-3">✦</span>
+                            <span class="stage-sparkle sp-4">✧</span>
+                        </div>
+                        <div class="card-visual daily-stage-card is-flipped" id="daily-card-visual">
+                            <div class="daily-stage-card-inner" id="daily-stage-card-inner">
+                                <div class="daily-stage-card-back card-frame gold-glow" aria-hidden="true">
+                                    <div class="tarot-back-ornament">
+                                        <span class="tarot-back-moon top">☾</span>
+                                        <span class="tarot-back-ring">
+                                            <span class="tarot-back-star">✦</span>
+                                        </span>
+                                        <span class="tarot-back-moon bottom">☽</span>
+                                    </div>
+                                </div>
+                                <div class="daily-stage-card-front card-frame gold-glow">
+                                    <img class="card-art" id="res-daily-art" src="img/00-TheFool.png" alt="오늘의 카드 이미지">
+                                    <span class="card-number" id="res-daily-num">0/22</span>
+                                    <span class="card-name" id="res-daily-name">바보</span>
+                                    <span class="stage-front-sheen" aria-hidden="true"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-info-box card-frame thin">
+                    <div class="card-info-box card-frame thin daily-reading-box" id="daily-reading-box">
                         <div class="info-block">
                             <h4 class="info-label">기본 의미</h4>
                             <p class="info-meaning" id="res-daily-meaning">시작, 가능성, 자유, 호기심</p>
