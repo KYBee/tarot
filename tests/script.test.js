@@ -481,3 +481,143 @@ test('shareProfile falls back to clipboard when the share sheet fails', async ()
 
   assert.match(copiedText, /탄생카드: 8 힘/);
 });
+
+test('buildDeck returns 78 unique cards with existing images and daily fortune fields', () => {
+  assert.equal(typeof tarot.buildDeck, 'function');
+
+  const deck = tarot.buildDeck();
+  assert.equal(deck.length, 78);
+
+  const ids = new Set();
+  let majorCount = 0;
+  let minorCount = 0;
+
+  for (const card of deck) {
+    assert.ok(card.id, 'card must have an id');
+    assert.equal(ids.has(card.id), false, `duplicate id: ${card.id}`);
+    ids.add(card.id);
+
+    if (card.arcana === 'major') {
+      majorCount += 1;
+    } else if (card.arcana === 'minor') {
+      minorCount += 1;
+    }
+
+    assert.ok(card.name, `missing name for ${card.id}`);
+    assert.ok(card.englishName, `missing englishName for ${card.id}`);
+    assert.ok(Array.isArray(card.keywords) && card.keywords.length >= 3, `invalid keywords for ${card.id}`);
+    assert.ok(card.symbolismDescription, `missing symbolismDescription for ${card.id}`);
+    assert.ok(card.dailyMessage, `missing dailyMessage for ${card.id}`);
+    assert.ok(card.dailyAdvice, `missing dailyAdvice for ${card.id}`);
+    assert.ok(card.imagePath, `missing imagePath for ${card.id}`);
+    assert.equal(
+      fs.existsSync(path.join(__dirname, '..', card.imagePath)),
+      true,
+      `image file does not exist for ${card.id}: ${card.imagePath}`
+    );
+  }
+
+  assert.equal(majorCount, 22);
+  assert.equal(minorCount, 56);
+});
+
+test('getDailyCardContent resolves major and minor cards by id', () => {
+  assert.equal(typeof tarot.getDailyCardContent, 'function');
+
+  const fool = tarot.getDailyCardContent('major-00');
+  assert.equal(fool.name, '바보');
+  assert.equal(fool.displayNumber, '0/22');
+
+  const cupsKing = tarot.getDailyCardContent('cups-14');
+  assert.equal(cupsKing.name, '컵 왕');
+  assert.equal(cupsKing.suit, 'cups');
+  assert.equal(cupsKing.rank, 14);
+
+  assert.equal(tarot.getDailyCardContent('unknown-99'), null);
+});
+
+test('shuffleDeck deterministically shuffles 78 cards without mutation or loss', () => {
+  assert.equal(typeof tarot.shuffleDeck, 'function');
+
+  const deck = tarot.buildDeck();
+  const originalIds = deck.map((card) => card.id);
+
+  function createSeededRng(seed) {
+    let state = seed >>> 0;
+    return () => {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state / 0x100000000;
+    };
+  }
+
+  const shuffledA = tarot.shuffleDeck(deck, createSeededRng(42));
+  const shuffledB = tarot.shuffleDeck(deck, createSeededRng(42));
+
+  assert.deepEqual(
+    deck.map((card) => card.id),
+    originalIds,
+    'shuffleDeck should not mutate original deck'
+  );
+  assert.equal(shuffledA.length, 78);
+  assert.deepEqual(
+    shuffledA.map((card) => card.id),
+    shuffledB.map((card) => card.id),
+    'same seed should produce identical order'
+  );
+  assert.notDeepEqual(
+    shuffledA.map((card) => card.id),
+    originalIds,
+    'shuffled order should differ from canonical order'
+  );
+  assert.deepEqual(
+    [...shuffledA.map((card) => card.id)].sort(),
+    [...originalIds].sort(),
+    'shuffled deck should contain the exact same 78 cards'
+  );
+});
+
+test('saveDailyCard and getSavedDailyCard lock the daily card for the same day only', () => {
+  assert.equal(typeof tarot.saveDailyCard, 'function');
+  assert.equal(typeof tarot.getSavedDailyCard, 'function');
+
+  const store = new Map();
+  const mockStorage = {
+    getItem(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    setItem(key, value) {
+      store.set(key, String(value));
+    }
+  };
+
+  const today = new Date('2026-11-27T09:30:00+09:00');
+  const tomorrow = new Date('2026-11-28T00:05:00+09:00');
+
+  assert.equal(tarot.getSavedDailyCard(today, mockStorage), null);
+
+  tarot.saveDailyCard('wands-01', today, mockStorage);
+  const savedToday = tarot.getSavedDailyCard(today, mockStorage);
+  assert.ok(savedToday);
+  assert.equal(savedToday.id, 'wands-01');
+  assert.equal(savedToday.name, '완드 에이스');
+
+  assert.equal(tarot.getSavedDailyCard(tomorrow, mockStorage), null);
+});
+
+test('getDailyShareText and buildDailyKakaoSharePayload include daily card details', () => {
+  assert.equal(typeof tarot.getDailyShareText, 'function');
+  assert.equal(typeof tarot.buildDailyKakaoSharePayload, 'function');
+
+  const card = tarot.getDailyCardContent('wands-01');
+  const text = tarot.getDailyShareText(card);
+
+  assert.match(text, /오늘의 타로 운세/);
+  assert.match(text, /오늘의 카드: 완드 에이스/);
+  assert.match(text, /한 줄 조언:/);
+  assert.match(text, /https:\/\/tarot-zeta-two\.vercel\.app\/?/);
+
+  const payload = tarot.buildDailyKakaoSharePayload(card);
+  assert.equal(payload.objectType, 'text');
+  assert.equal(payload.link.mobileWebUrl, 'https://tarot-zeta-two.vercel.app/');
+  assert.match(payload.text, /오늘의 카드: 완드 에이스/);
+});

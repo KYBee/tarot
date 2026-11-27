@@ -10,10 +10,24 @@ const contentSource = (() => {
   }
 })();
 
+const minorContentSource = (() => {
+  if (typeof globalThis !== 'undefined' && globalThis.MINOR_ARCANA_CONTENT) {
+    return globalThis;
+  }
+
+  try {
+    return require('./data/minor-arcana-content.js');
+  } catch (error) {
+    return {};
+  }
+})();
+
 const TAROT_CARD_CONTENT = contentSource.TAROT_CARD_CONTENT || {};
+const MINOR_ARCANA_CONTENT = minorContentSource.MINOR_ARCANA_CONTENT || {};
 const APP_COPY = contentSource.APP_COPY || {};
 const DEFAULT_SHARE_BASE_URL = 'https://tarot-zeta-two.vercel.app/';
 const KAKAO_SDK_MESSAGE = '카카오 공유를 열었어요.';
+const DAILY_STORAGE_KEY = 'tarot_daily_fortune_v1';
 const CARD_IMAGE_FILES = {
   0: 'img/00-TheFool.png',
   1: 'img/01-TheMagician.png',
@@ -231,6 +245,127 @@ function getDetailedProfile(cardContent) {
 
 function getCardImagePath(cardNumber) {
   return CARD_IMAGE_FILES[normalizeCardNumber(cardNumber)] || '';
+}
+
+function buildDeck() {
+  const deck = [];
+
+  for (let number = 0; number <= 21; number += 1) {
+    const content = getCardContent(number);
+    const id = `major-${String(number).padStart(2, '0')}`;
+    deck.push({
+      id,
+      arcana: 'major',
+      canonicalNumber: number,
+      displayNumber: content.displayNumber || getDisplayNumber(number),
+      name: content.name,
+      englishName: content.englishName,
+      imagePath: getCardImagePath(number),
+      keywords: content.keywords || [],
+      symbolismDescription: content.symbolismDescription || '',
+      dailyMessage: content.dailyMessage || '',
+      dailyAdvice: content.dailyAdvice || ''
+    });
+  }
+
+  const suits = ['wands', 'cups', 'swords', 'pentacles'];
+  for (const suit of suits) {
+    for (let rank = 1; rank <= 14; rank += 1) {
+      const id = `${suit}-${String(rank).padStart(2, '0')}`;
+      const minor = MINOR_ARCANA_CONTENT[id];
+      if (minor) {
+        deck.push({
+          ...minor,
+          id,
+          arcana: 'minor'
+        });
+      }
+    }
+  }
+
+  return deck;
+}
+
+function getDailyCardContent(cardId) {
+  if (!cardId) {
+    return null;
+  }
+
+  const normalizedId = String(cardId).trim();
+  const deck = buildDeck();
+  return deck.find((card) => card.id === normalizedId) || null;
+}
+
+function shuffleDeck(deck, rng = Math.random) {
+  const copy = Array.isArray(deck) ? [...deck] : [];
+
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(rng() * (index + 1));
+    const clampedIndex = Math.max(0, Math.min(index, randomIndex));
+    const temp = copy[index];
+    copy[index] = copy[clampedIndex];
+    copy[clampedIndex] = temp;
+  }
+
+  return copy;
+}
+
+function formatDailyDateKey(now = new Date()) {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getDefaultStorage() {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+  } catch (error) {
+    return null;
+  }
+  return null;
+}
+
+function getSavedDailyCard(now = new Date(), storage = getDefaultStorage()) {
+  if (!storage || typeof storage.getItem !== 'function') {
+    return null;
+  }
+
+  try {
+    const raw = storage.getItem(DAILY_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    const todayKey = formatDailyDateKey(now);
+    if (!parsed || parsed.dateKey !== todayKey || !parsed.cardId) {
+      return null;
+    }
+
+    return getDailyCardContent(parsed.cardId);
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveDailyCard(cardId, now = new Date(), storage = getDefaultStorage()) {
+  if (!storage || typeof storage.setItem !== 'function' || !cardId) {
+    return false;
+  }
+
+  try {
+    const payload = JSON.stringify({
+      dateKey: formatDailyDateKey(now),
+      cardId: String(cardId).trim()
+    });
+    storage.setItem(DAILY_STORAGE_KEY, payload);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 function formatDigitsExpression(value) {
@@ -550,6 +685,55 @@ function buildKakaoSharePayload(profile = currentProfile) {
   };
 }
 
+function getDailyShareLabel(card) {
+  if (!card) {
+    return '';
+  }
+
+  if (card.arcana === 'major') {
+    return `${card.displayNumber} ${card.name} (${card.englishName})`;
+  }
+
+  return `${card.name} (${card.englishName})`;
+}
+
+function getDailyShareText(card) {
+  if (!card) {
+    return '';
+  }
+
+  const shareUrl = getShareUrl();
+
+  return [
+    '너의 타로는? | 오늘의 타로 운세',
+    '',
+    `오늘의 카드: ${getDailyShareLabel(card)}`,
+    `기본 의미: ${(card.keywords || []).join(', ')}`,
+    `한 줄 조언: ${card.dailyAdvice || ''}`,
+    '',
+    '오늘의 타로 운세를 확인해보세요.',
+    shareUrl
+  ].join('\n');
+}
+
+function buildDailyKakaoSharePayload(card) {
+  if (!card) {
+    return null;
+  }
+
+  const shareUrl = getShareUrl();
+
+  return {
+    objectType: 'text',
+    text: getDailyShareText(card),
+    link: {
+      mobileWebUrl: shareUrl,
+      webUrl: shareUrl
+    },
+    buttonTitle: '오늘의 타로 보기'
+  };
+}
+
 function initKakaoShare() {
   if (typeof window === 'undefined' || !window.Kakao?.init || !window.Kakao?.isInitialized) {
     return false;
@@ -803,10 +987,18 @@ const exported = {
   getProfileResultVisibility,
   getDetailedProfile,
   getCardImagePath,
+  buildDeck,
+  getDailyCardContent,
+  shuffleDeck,
+  formatDailyDateKey,
+  getSavedDailyCard,
+  saveDailyCard,
   getShareUrl,
   getShareText,
+  getDailyShareText,
   getKakaoJavaScriptKey,
   buildKakaoSharePayload,
+  buildDailyKakaoSharePayload,
   formatBirthTrace,
   formatYearTrace,
   buildTarotProfile,
