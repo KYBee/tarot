@@ -724,6 +724,75 @@ function initKakaoAdfit() {
   return true;
 }
 
+function getCoupangPartnersConfig() {
+  const runtimeConfig = (typeof globalThis !== 'undefined' && globalThis.APP_CONFIG) || {};
+  const rawLink = String(runtimeConfig.coupangPartnersLink || '').trim();
+  const rawBannerSrc = String(runtimeConfig.coupangPartnersBannerSrc || '').trim();
+  const link = /^https?:\/\//i.test(rawLink) ? rawLink : '';
+  const bannerSrc = /^https?:\/\//i.test(rawBannerSrc) ? rawBannerSrc : '';
+  const title =
+    String(
+      runtimeConfig.coupangPartnersTitle ||
+        '나만의 라이더 웨이트 타로 덱 & 행운의 인센스·원석 구경하기'
+    ).trim() || '나만의 라이더 웨이트 타로 덱 & 행운의 인센스·원석 구경하기';
+  const width = String(runtimeConfig.coupangPartnersWidth || '320').trim() || '320';
+  const height = String(runtimeConfig.coupangPartnersHeight || '100').trim() || '100';
+
+  return {
+    enabled: Boolean(link || bannerSrc),
+    link,
+    title,
+    bannerSrc,
+    width,
+    height
+  };
+}
+
+function initCoupangPartners() {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+
+  const coupang = getCoupangPartnersConfig();
+  const container = document.getElementById('coupang-container');
+  const titleEl = document.getElementById('coupang-lucky-title');
+  const linkEl = document.getElementById('coupang-lucky-link');
+  const bannerFrame = document.getElementById('coupang-banner-frame');
+  const bannerIframe = document.getElementById('coupang-banner-iframe');
+
+  if (!coupang.enabled || !container) {
+    setElementHidden(container, true);
+    return false;
+  }
+
+  if (titleEl) {
+    titleEl.textContent = coupang.title;
+  }
+
+  if (linkEl) {
+    if (coupang.link) {
+      linkEl.setAttribute('href', coupang.link);
+      setElementHidden(linkEl, false);
+    } else {
+      setElementHidden(linkEl, true);
+    }
+  }
+
+  if (bannerFrame && bannerIframe) {
+    if (coupang.bannerSrc) {
+      bannerIframe.setAttribute('src', coupang.bannerSrc);
+      bannerIframe.setAttribute('width', coupang.width);
+      bannerIframe.setAttribute('height', coupang.height);
+      setElementHidden(bannerFrame, false);
+    } else {
+      setElementHidden(bannerFrame, true);
+    }
+  }
+
+  setElementHidden(container, false);
+  return true;
+}
+
 function buildKakaoSharePayload(profile = currentProfile) {
   if (!profile) {
     return null;
@@ -1504,6 +1573,7 @@ function initApp() {
   }
 
   initKakaoShare();
+  initCoupangPartners();
   initKakaoAdfit();
   bindEvents();
   if (typeof window !== 'undefined' && window.location?.hash === '#daily') {
@@ -1540,6 +1610,8 @@ const exported = {
   getKakaoJavaScriptKey,
   getKakaoAdfitConfig,
   initKakaoAdfit,
+  getCoupangPartnersConfig,
+  initCoupangPartners,
   buildKakaoSharePayload,
   buildDailyKakaoSharePayload,
   formatBirthTrace,

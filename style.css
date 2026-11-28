@@ -807,6 +807,65 @@ body {
     overflow: hidden;
 }
 
+.coupang-partners-section {
+    width: 100%;
+    max-width: 420px;
+    margin: 14px auto 6px;
+    padding: 0 18px;
+}
+
+.coupang-lucky-card {
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(28, 15, 48, 0.88), rgba(16, 8, 28, 0.94));
+    border: 1px solid rgba(212, 175, 55, 0.38);
+}
+
+.coupang-lucky-badge {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent-gold);
+}
+
+.coupang-lucky-title {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.coupang-lucky-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 13px 18px;
+    font-size: 0.94rem;
+    margin-top: 2px;
+}
+
+.coupang-banner-frame {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+
+.coupang-disclosure {
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: var(--text-dim);
+    margin-top: 2px;
+}
+
 .daily-header {
     padding: 20px 20px 6px;
 }

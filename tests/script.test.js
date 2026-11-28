@@ -747,3 +747,27 @@ test('service title is updated to 오늘과 너의 타로 and Kakao AdFit slot i
     globalThis.APP_CONFIG = prevConfig;
   }
 });
+
+test('Coupang Partners lucky item card and banner config validate URLs and disclosure', () => {
+  const latestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+
+  assert.match(latestHtml, /id="coupang-container"/);
+  assert.match(latestHtml, /id="coupang-lucky-link"/);
+  assert.match(latestHtml, /id="coupang-banner-iframe"/);
+  assert.match(latestHtml, /쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다/);
+
+  const prevConfig = globalThis.APP_CONFIG;
+  try {
+    globalThis.APP_CONFIG = {
+      coupangPartnersLink: 'https://link.coupang.com/a/TAROT777',
+      coupangPartnersTitle: '라이더 웨이트 타로 카드 78장 세트'
+    };
+
+    const config = tarot.getCoupangPartnersConfig();
+    assert.equal(config.enabled, true);
+    assert.equal(config.link, 'https://link.coupang.com/a/TAROT777');
+    assert.equal(config.title, '라이더 웨이트 타로 카드 78장 세트');
+  } finally {
+    globalThis.APP_CONFIG = prevConfig;
+  }
+});
