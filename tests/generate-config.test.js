@@ -15,6 +15,9 @@ test('generate-config writes APP_CONFIG from environment variables', () => {
       ...process.env,
       KAKAO_JS_KEY: 'test-kakao-key',
       SHARE_BASE_URL: 'https://tarot-zeta-two.vercel.app/',
+      KAKAO_ADFIT_UNIT: 'DAN-TEST123456',
+      KAKAO_ADFIT_WIDTH: '320',
+      KAKAO_ADFIT_HEIGHT: '100',
       CONFIG_OUTPUT_PATH: outputPath
     },
     encoding: 'utf8'
@@ -27,5 +30,6 @@ test('generate-config writes APP_CONFIG from environment variables', () => {
 
   assert.match(generated, /window\.APP_CONFIG/);
   assert.match(generated, /test-kakao-key/);
+  assert.match(generated, /DAN-TEST123456/);
   assert.match(generated, /https:\/\/tarot-zeta-two\.vercel\.app\//);
 });

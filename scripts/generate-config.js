@@ -2,11 +2,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const DEFAULT_SHARE_BASE_URL = 'https://tarot-zeta-two.vercel.app/';
+const DEFAULT_ADFIT_WIDTH = '320';
+const DEFAULT_ADFIT_HEIGHT = '100';
 
 function getRuntimeConfig(env = process.env) {
   return {
     kakaoJavaScriptKey: String(env.KAKAO_JS_KEY || '').trim(),
-    shareBaseUrl: String(env.SHARE_BASE_URL || DEFAULT_SHARE_BASE_URL).trim() || DEFAULT_SHARE_BASE_URL
+    shareBaseUrl: String(env.SHARE_BASE_URL || DEFAULT_SHARE_BASE_URL).trim() || DEFAULT_SHARE_BASE_URL,
+    kakaoAdfitUnit: String(env.KAKAO_ADFIT_UNIT || '').trim(),
+    kakaoAdfitWidth: String(env.KAKAO_ADFIT_WIDTH || DEFAULT_ADFIT_WIDTH).trim() || DEFAULT_ADFIT_WIDTH,
+    kakaoAdfitHeight: String(env.KAKAO_ADFIT_HEIGHT || DEFAULT_ADFIT_HEIGHT).trim() || DEFAULT_ADFIT_HEIGHT
   };
 }
 

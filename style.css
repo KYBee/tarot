@@ -788,6 +788,25 @@ body {
     padding-bottom: 20px;
 }
 
+.adfit-banner-section {
+    width: 100%;
+    max-width: 420px;
+    margin: 18px auto 4px;
+    padding: 10px 0 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.adfit-slot-frame {
+    min-height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
 .daily-header {
     padding: 20px 20px 6px;
 }

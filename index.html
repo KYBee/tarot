@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>너의 타로는? - 나의 타로 프로필</title>
+    <title>오늘과 너의 타로 - 나의 탄생카드와 오늘의 운세</title>
+    <meta name="description" content="생년월일로 읽는 나의 타로 프로필(탄생카드·페르소나·연도 흐름)과 78장 타로 덱에서 직접 고르는 오늘의 운세">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="오늘과 너의 타로">
+    <meta property="og:description" content="생년월일로 보는 나의 탄생카드 프로필과 78장 덱에서 직접 고르는 오늘의 타로 운세">
+    <meta property="og:url" content="https://tarot-zeta-two.vercel.app/">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -21,8 +26,8 @@
         <section id="landing" class="screen active">
             <div class="container">
                 <header>
-                    <h1 class="glow-text">너의 타로는?</h1>
-                    <p class="subtitle">생년월일로 보는 나의 타로 프로필과 오늘의 운세</p>
+                    <h1 class="glow-text">오늘과 너의 타로</h1>
+                    <p class="subtitle">생년월일로 보는 나의 탄생카드와 오늘의 타로 운세</p>
                 </header>
 
                 <div class="mode-selector" role="group" aria-label="타로 메뉴 선택">
@@ -348,6 +353,13 @@
                 </div>
             </div>
         </section>
+
+        <!-- Kakao AdFit Banner Slot -->
+        <aside class="adfit-banner-section" id="adfit-container" aria-label="광고" hidden>
+            <div class="adfit-slot-frame">
+                <ins class="kakao_ad_area" id="kakao-adfit-ins" style="display:none;" data-ad-unit="" data-ad-width="320" data-ad-height="100"></ins>
+            </div>
+        </aside>
     </main>
 
     <script>
