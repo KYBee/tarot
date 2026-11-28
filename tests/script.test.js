@@ -713,3 +713,37 @@ test('daily spread supports two-step card levitation, reshuffle, and 3D stage fl
     index: 12
   });
 });
+
+test('service title is updated to 오늘과 너의 타로 and Kakao AdFit slot is configured', () => {
+  const latestHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+
+  assert.match(latestHtml, /<h1 class="glow-text">오늘과 너의 타로<\/h1>/);
+  assert.match(latestHtml, /id="adfit-container"/);
+  assert.match(latestHtml, /class="kakao_ad_area"/);
+
+  const profile = tarot.buildTarotProfile(
+    { year: 1997, month: 10, day: 17 },
+    new Date('2026-09-01T00:00:00+09:00')
+  );
+  assert.match(tarot.getShareText(profile), /오늘과 너의 타로 \| 나의 타로 프로필/);
+
+  const dailyCard = tarot.getDailyCardContent('wands-01');
+  assert.match(tarot.getDailyShareText(dailyCard), /오늘과 너의 타로 \| 오늘의 타로 운세/);
+
+  const prevConfig = globalThis.APP_CONFIG;
+  try {
+    globalThis.APP_CONFIG = {
+      kakaoAdfitUnit: 'DAN-UNIT999',
+      kakaoAdfitWidth: '320',
+      kakaoAdfitHeight: '100'
+    };
+    assert.deepEqual(tarot.getKakaoAdfitConfig(), {
+      enabled: true,
+      unit: 'DAN-UNIT999',
+      width: '320',
+      height: '100'
+    });
+  } finally {
+    globalThis.APP_CONFIG = prevConfig;
+  }
+});

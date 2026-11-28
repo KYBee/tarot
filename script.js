@@ -25,9 +25,11 @@ const minorContentSource = (() => {
 const TAROT_CARD_CONTENT = contentSource.TAROT_CARD_CONTENT || {};
 const MINOR_ARCANA_CONTENT = minorContentSource.MINOR_ARCANA_CONTENT || {};
 const APP_COPY = contentSource.APP_COPY || {};
+const SERVICE_TITLE = '오늘과 너의 타로';
 const DEFAULT_SHARE_BASE_URL = 'https://tarot-zeta-two.vercel.app/';
 const KAKAO_SDK_MESSAGE = '카카오 공유를 열었어요.';
 const DAILY_STORAGE_KEY = 'tarot_daily_fortune_v1';
+const KAKAO_ADFIT_SCRIPT_SRC = 'https://t1.daumcdn.net/kas/static/ba.min.js';
 const CARD_IMAGE_FILES = {
   0: 'img/00-TheFool.png',
   1: 'img/01-TheMagician.png',
@@ -656,7 +658,7 @@ function getShareText(profile = currentProfile) {
   }
 
   return [
-    '너의 타로는? | 나의 타로 프로필',
+    `${SERVICE_TITLE} | 나의 타로 프로필`,
     '',
     ...profileLines,
     `기본 의미: ${birth.keywords.join(', ')}`,
@@ -671,6 +673,55 @@ function getKakaoJavaScriptKey() {
   return String(
     (typeof globalThis !== 'undefined' && globalThis.APP_CONFIG?.kakaoJavaScriptKey) || ''
   ).trim();
+}
+
+function getKakaoAdfitConfig() {
+  const runtimeConfig = (typeof globalThis !== 'undefined' && globalThis.APP_CONFIG) || {};
+  const unit = String(runtimeConfig.kakaoAdfitUnit || '').trim();
+  const width = String(runtimeConfig.kakaoAdfitWidth || '320').trim() || '320';
+  const height = String(runtimeConfig.kakaoAdfitHeight || '100').trim() || '100';
+
+  return {
+    enabled: Boolean(unit),
+    unit,
+    width,
+    height
+  };
+}
+
+function initKakaoAdfit() {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+
+  const adfit = getKakaoAdfitConfig();
+  const container = document.getElementById('adfit-container');
+  const ins = document.getElementById('kakao-adfit-ins');
+
+  if (!adfit.enabled || !container || !ins) {
+    setElementHidden(container, true);
+    return false;
+  }
+
+  ins.setAttribute('data-ad-unit', adfit.unit);
+  ins.setAttribute('data-ad-width', adfit.width);
+  ins.setAttribute('data-ad-height', adfit.height);
+  setElementHidden(container, false);
+
+  const existingScript =
+    typeof document.querySelector === 'function'
+      ? document.querySelector(`script[src="${KAKAO_ADFIT_SCRIPT_SRC}"]`)
+      : null;
+
+  if (!existingScript && typeof document.createElement === 'function' && document.body?.appendChild) {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = KAKAO_ADFIT_SCRIPT_SRC;
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
+  return true;
 }
 
 function buildKakaoSharePayload(profile = currentProfile) {
@@ -711,7 +762,7 @@ function getDailyShareText(card) {
   const shareUrl = getShareUrl();
 
   return [
-    '너의 타로는? | 오늘의 타로 운세',
+    `${SERVICE_TITLE} | 오늘의 타로 운세`,
     '',
     `오늘의 카드: ${getDailyShareLabel(card)}`,
     `기본 의미: ${(card.keywords || []).join(', ')}`,
@@ -1195,7 +1246,7 @@ async function shareDailyCard(card = currentDailyCard) {
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
       await navigator.share({
-        title: '너의 타로는? | 오늘의 타로 운세',
+        title: `${SERVICE_TITLE} | 오늘의 타로 운세`,
         text: shareText,
         url: shareUrl
       });
@@ -1249,7 +1300,7 @@ async function shareProfile(profile) {
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
       await navigator.share({
-        title: '너의 타로는? | 나의 타로 프로필',
+        title: `${SERVICE_TITLE} | 나의 타로 프로필`,
         text: shareText,
         url: shareUrl
       });
@@ -1453,6 +1504,7 @@ function initApp() {
   }
 
   initKakaoShare();
+  initKakaoAdfit();
   bindEvents();
   if (typeof window !== 'undefined' && window.location?.hash === '#daily') {
     openDailyScreen();
@@ -1486,6 +1538,8 @@ const exported = {
   getShareText,
   getDailyShareText,
   getKakaoJavaScriptKey,
+  getKakaoAdfitConfig,
+  initKakaoAdfit,
   buildKakaoSharePayload,
   buildDailyKakaoSharePayload,
   formatBirthTrace,
