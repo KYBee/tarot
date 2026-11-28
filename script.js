@@ -59,6 +59,7 @@ let currentDailyDeck = [];
 let selectedDailyCardId = null;
 let selectedDailyCardIndex = null;
 let isDailyPicking = false;
+let suppressNextSpreadClick = false;
 
 function sumDigits(number) {
   return String(Math.abs(number))
@@ -832,12 +833,12 @@ function updateDailySelectionStatus(index = null) {
 
   const statusEl = document.getElementById('daily-selection-status');
   const confirmBtn = document.getElementById('daily-draw-confirm');
-  const guideEl = document.getElementById('daily-guide');
 
   if (index === null || index === undefined) {
-    setElementText('daily-selection-status', '78장의 카드가 펼쳐져 있습니다');
-    setElementText('daily-guide', '마음을 가다듬고 끌리는 카드를 터치해 들어올려 보세요.');
+    setElementText('daily-selection-status', '');
+    setElementText('daily-guide', '뒤집어진 카드를 좌우로 드래그해 살펴보고, 끌리는 카드를 골라보세요.');
     statusEl?.classList.remove('is-active');
+    setElementHidden(statusEl, true);
     setElementHidden(confirmBtn, true);
     return;
   }
@@ -845,14 +846,40 @@ function updateDailySelectionStatus(index = null) {
   const orderLabel = index + 1;
   setElementText(
     'daily-selection-status',
-    `78장 중 ${orderLabel}번째 카드 선택됨 · 한 번 더 탭하면 뒤집힙니다`
+    `${orderLabel}번째 카드 선택됨 · 카드를 한 번 더 탭하면 뒤집힙니다`
   );
   setElementText(
     'daily-guide',
     '이 카드에서 끌림이 느껴진다면 카드를 한 번 더 탭하거나 아래 버튼을 눌러보세요.'
   );
   statusEl?.classList.add('is-active');
+  setElementHidden(statusEl, false);
   setElementHidden(confirmBtn, false);
+}
+
+function buildTarotCardBackSvg() {
+  return [
+    '<svg class="tarot-back-svg" viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+    '  <rect x="3" y="3" width="114" height="194" rx="9" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-opacity="0.88"/>',
+    '  <rect x="8" y="8" width="104" height="184" rx="6" fill="none" stroke="#f4d46a" stroke-width="0.9" stroke-opacity="0.55" stroke-dasharray="2 2"/>',
+    '  <path d="M8 22 L22 8 M98 8 L112 22 M8 178 L22 192 M98 192 L112 178" stroke="#d4af37" stroke-width="1.1" stroke-opacity="0.7"/>',
+    '  <circle cx="16" cy="16" r="2.2" fill="#f4d46a" fill-opacity="0.8"/>',
+    '  <circle cx="104" cy="16" r="2.2" fill="#f4d46a" fill-opacity="0.8"/>',
+    '  <circle cx="16" cy="184" r="2.2" fill="#f4d46a" fill-opacity="0.8"/>',
+    '  <circle cx="104" cy="184" r="2.2" fill="#f4d46a" fill-opacity="0.8"/>',
+    '  <line x1="60" y1="20" x2="60" y2="180" stroke="#d4af37" stroke-width="0.7" stroke-opacity="0.35"/>',
+    '  <line x1="16" y1="100" x2="104" y2="100" stroke="#d4af37" stroke-width="0.7" stroke-opacity="0.35"/>',
+    '  <polygon points="60,24 98,100 60,176 22,100" fill="none" stroke="#d4af37" stroke-width="1" stroke-opacity="0.48"/>',
+    '  <circle cx="60" cy="100" r="34" fill="#180a2d" fill-opacity="0.85" stroke="#d4af37" stroke-width="1.4" stroke-opacity="0.85"/>',
+    '  <circle cx="60" cy="100" r="26" fill="none" stroke="#f4d46a" stroke-width="0.8" stroke-opacity="0.55" stroke-dasharray="3 2"/>',
+    '  <rect x="42" y="82" width="36" height="36" fill="none" stroke="#d4af37" stroke-width="1" stroke-opacity="0.65" transform="rotate(45 60 100)"/>',
+    '  <rect x="42" y="82" width="36" height="36" fill="none" stroke="#d4af37" stroke-width="1" stroke-opacity="0.65"/>',
+    '  <polygon points="60,76 65,95 84,100 65,105 60,124 55,105 36,100 55,95" fill="#f4d46a" fill-opacity="0.9"/>',
+    '  <circle cx="60" cy="100" r="4.5" fill="#1b0c33" stroke="#f4d46a" stroke-width="1.2"/>',
+    '  <path d="M53 42 A9 9 0 1 0 67 42 A7 7 0 1 1 53 42 Z" fill="#f4d46a" fill-opacity="0.78"/>',
+    '  <path d="M53 158 A9 9 0 1 1 67 158 A7 7 0 1 0 53 158 Z" fill="#f4d46a" fill-opacity="0.78"/>',
+    '</svg>'
+  ].join('');
 }
 
 function selectDailySpreadCard(cardId, index) {
@@ -891,6 +918,11 @@ function selectDailySpreadCard(cardId, index) {
 }
 
 function handleDailyCardTap(cardId, index, button) {
+  if (suppressNextSpreadClick) {
+    suppressNextSpreadClick = false;
+    return;
+  }
+
   if (isDailyPicking || currentDailyCard) {
     return;
   }
@@ -916,6 +948,7 @@ function renderDailySpread(deck) {
   spreadContainer.innerHTML = '';
   const total = deck.length || 1;
   const midpoint = (total - 1) / 2;
+  const cardBackSvg = buildTarotCardBackSvg();
 
   deck.forEach((card, index) => {
     const button = document.createElement('button');
@@ -928,7 +961,7 @@ function renderDailySpread(deck) {
 
     const normalizedOffset = (index - midpoint) / midpoint;
     const arcY = Math.round(Math.pow(normalizedOffset, 2) * 14 + Math.sin(index * 0.45) * 3);
-    const angle = (normalizedOffset * 6).toFixed(2);
+    const angle = (normalizedOffset * 5).toFixed(2);
     button.style.setProperty('--fan-y', `${arcY}px`);
     button.style.setProperty('--fan-rot', `${angle}deg`);
     button.style.setProperty('--card-order', String(index));
@@ -937,14 +970,11 @@ function renderDailySpread(deck) {
     button.innerHTML = [
       '<span class="spread-card-inner">',
       '  <span class="spread-card-back">',
-      '    <span class="spread-card-moon" aria-hidden="true">☾</span>',
-      '    <span class="spread-card-medallion" aria-hidden="true">',
-      '      <span class="spread-card-glyph">✦</span>',
-      '    </span>',
+      `    ${cardBackSvg}`,
       `    <span class="spread-card-index">${indexLabel}</span>`,
       '  </span>',
       '  <span class="spread-card-front">',
-      `    <img src="${card.imagePath}" alt="${card.name} 카드 이미지" loading="lazy">`,
+      `    <img src="${card.imagePath}" alt="${card.name} 카드 이미지" loading="lazy" draggable="false">`,
       '  </span>',
       '</span>'
     ].join('');
@@ -955,6 +985,63 @@ function renderDailySpread(deck) {
 
     spreadContainer.appendChild(button);
   });
+}
+
+function bindDailySpreadDrag() {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const spreadTrack = document.getElementById('daily-spread');
+  if (!spreadTrack) {
+    return;
+  }
+
+  let isPointerDown = false;
+  let startX = 0;
+  let startScrollLeft = 0;
+  let draggedDistance = 0;
+
+  spreadTrack.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    isPointerDown = true;
+    draggedDistance = 0;
+    startX = event.clientX;
+    startScrollLeft = spreadTrack.scrollLeft;
+    spreadTrack.classList.add('is-dragging');
+  });
+
+  spreadTrack.addEventListener('pointermove', (event) => {
+    if (!isPointerDown) {
+      return;
+    }
+
+    const deltaX = event.clientX - startX;
+    draggedDistance = Math.max(draggedDistance, Math.abs(deltaX));
+
+    if (draggedDistance > 6) {
+      suppressNextSpreadClick = true;
+      spreadTrack.scrollLeft = startScrollLeft - deltaX;
+    }
+  });
+
+  const endDrag = () => {
+    if (!isPointerDown) {
+      return;
+    }
+    isPointerDown = false;
+    spreadTrack.classList.remove('is-dragging');
+    if (draggedDistance <= 6) {
+      suppressNextSpreadClick = false;
+    }
+  };
+
+  spreadTrack.addEventListener('pointerup', endDrag);
+  spreadTrack.addEventListener('pointercancel', endDrag);
+  spreadTrack.addEventListener('pointerleave', endDrag);
 }
 
 function reshuffleDailySpread() {
@@ -1357,6 +1444,7 @@ function bindEvents() {
   });
 
   bindProfileNavigation();
+  bindDailySpreadDrag();
 }
 
 function initApp() {
@@ -1366,6 +1454,10 @@ function initApp() {
 
   initKakaoShare();
   bindEvents();
+  if (typeof window !== 'undefined' && window.location?.hash === '#daily') {
+    openDailyScreen();
+    return;
+  }
   showScreen('landing');
   updateProfileSteps(0);
 }
