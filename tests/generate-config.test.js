@@ -18,6 +18,8 @@ test('generate-config writes APP_CONFIG from environment variables', () => {
       KAKAO_ADFIT_UNIT: 'DAN-TEST123456',
       KAKAO_ADFIT_WIDTH: '320',
       KAKAO_ADFIT_HEIGHT: '100',
+      COUPANG_PARTNERS_LINK: 'https://link.coupang.com/a/TEST999',
+      COUPANG_PARTNERS_TITLE: '타로 카드 덱 추천',
       CONFIG_OUTPUT_PATH: outputPath
     },
     encoding: 'utf8'
@@ -31,5 +33,7 @@ test('generate-config writes APP_CONFIG from environment variables', () => {
   assert.match(generated, /window\.APP_CONFIG/);
   assert.match(generated, /test-kakao-key/);
   assert.match(generated, /DAN-TEST123456/);
+  assert.match(generated, /https:\/\/link\.coupang\.com\/a\/TEST999/);
+  assert.match(generated, /타로 카드 덱 추천/);
   assert.match(generated, /https:\/\/tarot-zeta-two\.vercel\.app\//);
 });

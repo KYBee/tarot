@@ -63,12 +63,13 @@ Vercel 배포에서는 빌드 시 `config.js`를 자동 생성합니다.
 - Project Settings > Environment Variables 에 아래 값을 추가합니다.
 - `KAKAO_JS_KEY`
 - `SHARE_BASE_URL`
-- `KAKAO_ADFIT_UNIT` (카카오 애드핏 광고 단위 ID, 예: `DAN-XXXXXXXXXXXXXXXX`)
-- `KAKAO_ADFIT_WIDTH` (선택, 기본값 `320`)
-- `KAKAO_ADFIT_HEIGHT` (선택, 기본값 `100`)
+- `COUPANG_PARTNERS_LINK` (쿠팡 파트너스 상품 단축 링크, 예: `https://link.coupang.com/a/XXXXXX`)
+- `COUPANG_PARTNERS_TITLE` (선택, 행운 아이템 카드 안내 문구)
+- `COUPANG_PARTNERS_BANNER_SRC` (선택, 쿠팡 다이나믹 배너 iframe `src` URL)
+- `KAKAO_ADFIT_UNIT` (선택, 카카오 애드핏 광고 단위 ID)
 
 현재 기본 공유 URL은 `https://tarot-zeta-two.vercel.app/` 이며, `SHARE_BASE_URL`을 비워두면 이 값을 사용합니다.
-배포 시 `config.js`가 생성되고, 앱은 이 값을 이용해 Kakao SDK와 카카오 애드핏 배너를 초기화합니다. 상세 절차는 [docs/kakao-adfit-integration.md](docs/kakao-adfit-integration.md)를 참고하세요.
+배포 시 `config.js`가 생성되고, 앱은 이 값을 이용해 Kakao SDK, 쿠팡 파트너스 행운 아이템 슬롯, 애드핏 배너를 초기화합니다. 상세 절차는 [docs/coupang-partners-integration.md](docs/coupang-partners-integration.md)를 참고하세요.
 
 로컬에서 같은 구성을 테스트하려면:
 
