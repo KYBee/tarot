@@ -698,9 +698,11 @@ test('daily spread supports two-step card levitation, reshuffle, and 3D stage fl
   const latestCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
 
   assert.match(latestHtml, /id="daily-selection-status"/);
+  assert.doesNotMatch(latestHtml, /78장의 카드가 펼쳐져 있습니다/);
   assert.match(latestHtml, /id="daily-draw-confirm"/);
   assert.match(latestHtml, /id="daily-reshuffle"/);
   assert.match(latestHtml, /id="daily-stage-card-inner"/);
+  assert.match(latestCss, /\.spread-card-inner\s*\{[^}]*display:\s*block/s);
   assert.match(latestCss, /\.spread-card\.is-selected/);
   assert.match(latestCss, /\.daily-stage-card\.is-flipped\s+\.daily-stage-card-inner/);
 
